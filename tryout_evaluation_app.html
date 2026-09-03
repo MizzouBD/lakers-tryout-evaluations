@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Lakers Eval App</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --navy:#1B4D80;
+  --navy2:#2C6BA3;
+  --amber:#FDB927;
+  --amber-dark:#DB9B10;
+  --court:#EEF5FA;
+  --line:#CFE1EE;
+  --ink:#132A42;
+  --sub:#5C7893;
+  --green:#2F7A4D;
+  --white:#FFFFFF;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+html,body{overflow-x:hidden;}
+body{
+  background:var(--court);
+  color:var(--ink);
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  min-height:100vh;
+  -webkit-tap-highlight-color:transparent;
+}
+.wrap{
+  max-width:520px;
+  margin:0 auto;
+  min-height:100vh;
+  background:var(--white);
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  overflow-x:hidden;
+}
+
+/* Header */
+.topbar{
+  background:linear-gradient(180deg,var(--navy) 0%, var(--navy2) 100%);
+  color:#fff;
+  padding:16px 18px 14px;
+  position:relative;
+  overflow:hidden;
+}
+.topbar::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0 2px, transparent 2px 26px);
+  pointer-events:none;
+}
+.topbar-row{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;}
+.brand{
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  letter-spacing:0.03em;
+  font-size:15px;
+  text-transform:uppercase;
+  color:var(--amber);
+}
+.brand small{display:block;font-family:'Inter';font-weight:500;color:#B9C2D6;font-size:11px;letter-spacing:0.02em;text-transform:none;margin-top:1px;}
+.evaluator-pill{
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:20px;
+  padding:6px 12px;
+  font-size:12.5px;
+  font-weight:600;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  cursor:pointer;
+}
+.evaluator-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--amber);}
+.back-btn{
+  background:none;border:none;color:#fff;font-size:14px;font-weight:600;
+  display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 2px;
+  font-family:'Inter';
+}
+.back-btn svg{width:18px;height:18px;}
+
+.page-title{
+  font-family:'Oswald',sans-serif;
+  font-size:22px;
+  font-weight:700;
+  margin:14px 0 0;
+  position:relative;z-index:1;
+  letter-spacing:0.01em;
+}
+.page-sub{font-size:12.5px;color:#B9C2D6;margin-top:3px;position:relative;z-index:1;}
+
+/* Content */
+.content{flex:1;padding:16px 16px 100px;}
+
+/* Screen: name entry */
+.hero{
+  text-align:center;
+  padding:36px 20px 10px;
+}
+.hero .ball{
+  font-size:44px;
+  margin-bottom:10px;
+}
+.hero h1{
+  font-family:'Oswald',sans-serif;
+  font-size:26px;
+  margin:0 0 6px;
+  color:var(--navy);
+}
+.hero p{color:var(--sub);font-size:14px;margin:0 0 26px;line-height:1.5;}
+
+.field-label{
+  font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--sub);margin-bottom:8px;display:block;
+}
+input[type=text], input[type=number], select, textarea{
+  width:100%;
+  border:1.5px solid var(--line);
+  border-radius:10px;
+  padding:13px 14px;
+  font-size:16px;
+  font-family:'Inter';
+  color:var(--ink);
+  background:var(--white);
+  outline:none;
+}
+input[type=text]:focus, input[type=number]:focus, select:focus, textarea:focus{
+  border-color:var(--amber);
+}
+.btn{
+  display:block;
+  width:100%;
+  text-align:center;
+  border:none;
+  border-radius:12px;
+  padding:15px 18px;
+  font-size:15.5px;
+  font-weight:700;
+  font-family:'Inter';
+  cursor:pointer;
+  letter-spacing:0.01em;
+}
+.btn-primary{background:var(--amber);color:#fff;}
+.btn-primary:active{background:var(--amber-dark);}
+.btn-primary:disabled{background:#E7C393;cursor:default;}
+.btn-secondary{background:var(--court);color:var(--navy);border:1.5px solid var(--line);}
+.btn-ghost{background:none;color:var(--navy);text-decoration:underline;padding:10px;font-weight:600;}
+.spacer-16{height:16px;}
+.spacer-24{height:24px;}
+
+/* Group grid */
+.section-label{
+  font-family:'Oswald',sans-serif;
+  font-size:13px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--sub);
+  margin:22px 0 10px;
+}
+.section-label:first-child{margin-top:0;}
+.group-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.group-card{
+  background:var(--white);
+  border:1.5px solid var(--line);
+  border-radius:12px;
+  padding:14px 14px 12px;
+  cursor:pointer;
+  text-align:left;
+  position:relative;
+}
+.group-card:active{border-color:var(--amber);}
+.group-card .g-name{font-family:'Oswald',sans-serif;font-weight:600;font-size:15.5px;color:var(--navy);}
+.group-card .g-progress{font-size:11.5px;color:var(--sub);margin-top:6px;}
+.group-card .g-bar{
+  height:5px;background:var(--line);border-radius:4px;margin-top:6px;overflow:hidden;
+}
+.group-card .g-bar-fill{height:100%;background:var(--green);border-radius:4px;}
+
+/* Roster list */
+.search-box{position:relative;margin-bottom:14px;}
+.search-box input{padding-left:38px;}
+.search-box svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--sub);}
+
+.roster-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:13px 4px;
+  border-bottom:1px solid var(--line);
+  cursor:pointer;
+}
+.roster-item:active{background:var(--court);}
+.jersey{
+  width:38px;height:38px;border-radius:50%;
+  background:var(--navy);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Oswald',sans-serif;font-weight:700;font-size:13px;
+  flex-shrink:0;
+}
+.jersey.blank{background:var(--line);color:var(--sub);}
+.roster-name{flex:1;min-width:0;}
+.roster-name .rn-main{font-weight:600;font-size:15px;color:var(--ink);}
+.roster-name .rn-sub{font-size:12.5px;color:var(--navy);font-weight:600;margin-top:2px;}
+.roster-name .rn-sub.no-rating{color:var(--sub);font-weight:500;font-style:italic;}
+.roster-status{flex-shrink:0;}
+.status-bubble{
+  width:24px;height:24px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--line);
+  transition:background 0.15s;
+}
+.status-bubble.has-feedback{background:var(--green);}
+.status-bubble svg{width:14px;height:14px;color:#fff;opacity:0;}
+.status-bubble.has-feedback svg{opacity:1;}
+.rn-main .new-tag{
+  display:inline-block;
+  background:var(--amber);
+  color:#fff;
+  font-size:9.5px;
+  font-weight:700;
+  letter-spacing:0.04em;
+  padding:2px 6px;
+  border-radius:5px;
+  vertical-align:middle;
+  margin-left:4px;
+}
+
+/* Eval form */
+.player-header{
+  display:flex;align-items:center;gap:10px;
+  padding-bottom:10px;margin-bottom:2px;border-bottom:1px solid var(--line);
+}
+.player-header .jersey{width:38px;height:38px;font-size:14px;background:var(--amber);}
+.player-header .ph-name{font-family:'Oswald',sans-serif;font-size:17px;font-weight:600;color:var(--navy);}
+.player-header .ph-sub{font-size:11.5px;color:var(--sub);margin-top:1px;}
+
+.skill-block{margin:10px 0;}
+.skill-block .sk-label{font-weight:700;font-size:12px;color:var(--ink);margin-bottom:5px;display:block;}
+.rate-row{display:flex;gap:5px;}
+.rate-btn{
+  flex:1;
+  height:32px;
+  border:1.5px solid var(--line);
+  background:var(--white);
+  border-radius:8px;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:12px;
+  color:var(--sub);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  padding:0;
+}
+.rate-btn.sel{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+.grade-row{display:flex;flex-wrap:wrap;gap:5px;}
+.grade-btn{
+  flex:1 1 30%;
+  border:1.5px solid var(--line);
+  background:var(--white);
+  border-radius:8px;
+  padding:7px 3px;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:11.5px;
+  color:var(--sub);
+  cursor:pointer;
+  text-align:center;
+}
+.grade-btn.sel{background:var(--amber);border-color:var(--amber);color:#fff;}
+
+.overall-block{
+  margin:12px 0 16px;
+  padding:12px;
+  background:var(--court);
+  border-radius:12px;
+}
+.overall-block .sk-label{margin-bottom:7px;}
+.grade-row-single{display:flex;flex-wrap:nowrap;gap:3px;overflow:hidden;}
+.grade-row-single .grade-btn{flex:1 1 0;min-width:0;padding:8px 1px;font-size:10.5px;}
+.rate-row-single{display:flex;flex-wrap:nowrap;gap:5px;}
+.rate-row-single .rate-btn{flex:1;height:34px;font-size:13px;}
+.overall-caption{font-size:10.5px;color:var(--sub);margin-top:7px;line-height:1.4;text-align:center;}
+
+.day-toggle{display:flex;gap:8px;margin-bottom:16px;}
+.day-toggle button{
+  flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--line);
+  background:var(--white);font-weight:700;font-size:13.5px;color:var(--sub);
+  font-family:'Inter';cursor:pointer;
+}
+.day-toggle button.sel{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+textarea{min-height:50px;resize:vertical;font-family:'Inter';font-size:14px;padding:9px 12px;}
+
+.save-bar{
+  position:sticky;bottom:0;
+  background:linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.95) 30%, #fff 60%);
+  padding:18px 16px 16px;
+  margin:0 -16px;
+}
+.save-note{font-size:11.5px;color:var(--sub);text-align:center;margin-top:8px;}
+
+/* Export screen */
+.export-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 4px;border-bottom:1px solid var(--line);
+}
+.export-row .er-name{font-weight:600;font-size:14.5px;}
+.export-row .er-count{font-size:12.5px;color:var(--sub);}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--navy);color:#fff;padding:12px 20px;border-radius:30px;
+  font-size:13.5px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.2);
+  z-index:100;opacity:0;pointer-events:none;transition:opacity 0.25s, transform 0.25s;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
+
+.empty-state{text-align:center;padding:60px 20px;color:var(--sub);}
+.empty-state svg{width:40px;height:40px;margin-bottom:12px;opacity:0.4;}
+
+.loading{text-align:center;padding:40px;color:var(--sub);font-size:14px;}
+
+.last-edited{
+  background:var(--court);
+  border-radius:7px;
+  padding:6px 10px;
+  font-size:11px;
+  color:var(--sub);
+  margin:8px 0 2px;
+}
+.last-edited strong{color:var(--ink);}
+
+.summary-section{margin-bottom:22px;}
+.summary-title{
+  font-family:'Oswald',sans-serif;
+  font-size:14.5px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.05em;
+  padding:9px 12px;
+  border-radius:8px;
+  margin-bottom:8px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.summary-title.st-gold{background:var(--amber);color:#3A2A00;}
+.summary-title.st-blue{background:var(--navy);color:#fff;}
+.summary-title.st-white{background:var(--white);color:var(--navy);border:1.5px solid var(--line);}
+.summary-title.st-waitlist{background:#B4400C;color:#fff;}
+.summary-title.st-unrated{background:var(--court);color:var(--sub);border:1.5px solid var(--line);}
+.summary-count{
+  font-family:'Inter';font-size:11.5px;font-weight:700;
+  background:rgba(0,0,0,0.12);
+  border-radius:10px;padding:2px 8px;
+}
+.summary-title.st-white .summary-count, .summary-title.st-unrated .summary-count{background:var(--court);color:var(--sub);}
+.summary-row{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 4px;
+  border-bottom:1px solid var(--line);
+}
+.summary-row:last-child{border-bottom:none;}
+.summary-info{flex:1;min-width:0;}
+.sr-name{font-weight:600;font-size:14.5px;color:var(--ink);}
+.sr-sub{font-size:11.5px;color:var(--sub);margin-top:1px;}
+.sr-rating{
+  flex-shrink:0;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:13px;
+  color:var(--navy);
+  background:var(--court);
+  border-radius:7px;
+  padding:5px 9px;
+}
+
+.score-summary{
+  display:flex;
+  gap:8px;
+  margin:10px 0 4px;
+}
+.score-box{
+  flex:1;
+  background:var(--court);
+  border-radius:10px;
+  padding:10px 8px;
+  text-align:center;
+}
+.score-box .sb-label{
+  font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;
+  color:var(--sub);margin-bottom:2px;
+}
+.score-box .sb-value{
+  font-family:'Oswald',sans-serif;font-weight:700;font-size:19px;color:var(--navy);
+}
+.score-box.sb-rec{background:var(--navy);}
+.score-box.sb-rec .sb-label{color:#B9C2D6;}
+.score-box.sb-rec .sb-value{color:#fff;font-size:12.5px;line-height:1.25;padding-top:2px;}
+
+.summary-title.st-elite{background:var(--amber);color:#3A2A00;}
+.summary-title.st-competitive{background:var(--navy);color:#fff;}
+.summary-title.st-balanced{background:var(--white);color:var(--navy);border:1.5px solid var(--line);}
+.summary-title.st-development{background:var(--amber-dark);color:#fff;}
+.summary-title.st-needsdev{background:#B4400C;color:#fff;}
+.summary-title.st-inprogress{background:var(--court);color:var(--sub);border:1.5px solid var(--line);}
+
+.modal-backdrop{
+  position:fixed;inset:0;
+  background:rgba(19,42,66,0.55);
+  display:flex;align-items:flex-end;justify-content:center;
+  z-index:300;
+  padding:0;
+}
+.modal-sheet{
+  background:#fff;
+  border-radius:18px 18px 0 0;
+  padding:22px 20px calc(20px + env(safe-area-inset-bottom));
+  width:100%;
+  max-width:520px;
+  box-shadow:0 -8px 30px rgba(0,0,0,0.2);
+}
+.modal-title{
+  font-family:'Oswald',sans-serif;font-weight:700;font-size:18px;color:var(--navy);
+  margin-bottom:8px;
+}
+.modal-body{
+  font-size:13.5px;color:var(--sub);line-height:1.5;margin-bottom:18px;
+}
+.modal-body strong{color:var(--ink);}
+
+::selection{background:var(--amber);color:#fff;}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const GROUP_ORDER = ["Boys 3rd","Boys 4th","Boys 5th","Boys 6th","Boys 7th","Boys 8th",
+                     "Girls 3rd","Girls 4th","Girls 5th","Girls 6th","Girls 7th","Girls 8th"];
+
+const GIRLS_EVALUATORS = ["Girls 1","Girls 2","Girls 3","Girls 4"];
+const BOYS_EVALUATORS = ["Boys 1","Boys 2","Boys 3","Boys 4"];
+
+const JERSEY_MIN = 1;
+const JERSEY_MAX = 75;
+
+const CATEGORIES = [
+  {key:'effort', label:'Effort'},
+  {key:'iq', label:'Basketball IQ & Awareness'},
+  {key:'skills', label:'Basketball Skills'},
+  {key:'movement', label:'Athletic Movement'},
+  {key:'teamplay', label:'Team Play'}
+];
+
+const ROSTER = {};
+GROUP_ORDER.forEach(g=>{
+  const players = [];
+  for(let n=JERSEY_MIN; n<=JERSEY_MAX; n++){ players.push({num:n}); }
+  ROSTER[g] = { isBoys: g.startsWith('Boys'), players };
+});
+
+let state = {
+  screen: 'name',      // name | groups | roster | form | export | summaryGroups | summary
+  evaluator: '',
+  side: null,           // 'girls' | 'boys'
+  group: null,
+  player: null,
+  search: '',
+  evalCache: {},         // pid -> record, in-memory for this session across all groups
+  formData: null,
+  showExportPrompt: false,
+  pendingScreen: null
+};
+
+function playerId(group, p){
+  return 'p_' + slug(group) + '_' + p.num;
+}
+function slug(s){
+  return (s||'').toString().toLowerCase().replace(/[^a-z0-9]+/g,'');
+}
+function timeAgo(iso){
+  try{
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const mins = Math.round(diffMs/60000);
+    if(mins < 1) return 'just now';
+    if(mins < 60) return mins + 'm ago';
+    const hrs = Math.round(mins/60);
+    if(hrs < 24) return hrs + 'h ago';
+    return Math.round(hrs/24) + 'd ago';
+  }catch(e){ return ''; }
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+const LOCAL_KEY = 'lakers_eval_data_v1';
+let localStorageOK = true;
+
+function persistToLocal(){
+  if(!localStorageOK) return;
+  try{
+    localStorage.setItem(LOCAL_KEY, JSON.stringify({
+      evaluator: state.evaluator,
+      side: state.side,
+      evalCache: state.evalCache
+    }));
+  }catch(e){
+    localStorageOK = false;
+  }
+}
+
+function loadFromLocal(){
+  try{
+    const raw = localStorage.getItem(LOCAL_KEY);
+    if(!raw) return;
+    const data = JSON.parse(raw);
+    if(data && data.evalCache) state.evalCache = data.evalCache;
+    if(data && data.evaluator) state.evaluator = data.evaluator;
+    if(data && data.side) state.side = data.side;
+  }catch(e){
+    localStorageOK = false;
+  }
+}
+
+function clearLocalData(){
+  try{ localStorage.removeItem(LOCAL_KEY); }catch(e){}
+  state.evalCache = {};
+}
+
+function saveEval(record){
+  state.evalCache[record.pid] = record;
+  persistToLocal();
+  return true;
+}
+
+function newFormData(group, player){
+  const existing = state.evalCache[playerId(group, player)];
+  if(existing) return JSON.parse(JSON.stringify(existing));
+  const scores = {};
+  CATEGORIES.forEach(c=>scores[c.key]=null);
+  return {
+    group, pid: playerId(group, player), num: player.num,
+    lastEditedBy: null, scores, updatedAt: null
+  };
+}
+
+/* ---------- Scoring helpers ---------- */
+function filledCount(fd){
+  if(!fd) return 0;
+  return CATEGORIES.filter(c=>fd.scores[c.key]!=null).length;
+}
+function totalScore(fd){
+  if(!fd) return 0;
+  return CATEGORIES.reduce((sum,c)=> sum + (fd.scores[c.key]||0), 0);
+}
+function averageScore(fd){
+  const n = filledCount(fd);
+  return n > 0 ? totalScore(fd) / n : null;
+}
+function recommendationLabel(fd){
+  const n = filledCount(fd);
+  if(n < CATEGORIES.length) return null;
+  const avg = totalScore(fd) / CATEGORIES.length;
+  if(avg >= 4.50) return 'Elite Team';
+  if(avg >= 4.00) return 'Competitive Team';
+  if(avg >= 3.25) return 'Balanced Team';
+  if(avg >= 2.50) return 'Development Team';
+  return 'Needs More Development';
+}
+function summaryBucket(fd){
+  if(!fd) return 'unrated';
+  const n = filledCount(fd);
+  if(n === 0) return 'unrated';
+  if(n < CATEGORIES.length) return 'inprogress';
+  const rec = recommendationLabel(fd);
+  const map = {
+    'Elite Team':'elite','Competitive Team':'competitive','Balanced Team':'balanced',
+    'Development Team':'development','Needs More Development':'needsdev'
+  };
+  return map[rec] || 'unrated';
+}
+function rosterSubLabel(fd){
+  if(!fd) return 'No rating';
+  const n = filledCount(fd);
+  if(n === 0) return 'No rating';
+  if(n < CATEGORIES.length) return n + ' of 5 scored';
+  const avg = (totalScore(fd) / CATEGORIES.length).toFixed(2);
+  return recommendationLabel(fd) + ' · Avg ' + avg;
+}
+function gradeLabel(group){
+  const m = group.match(/\d+/);
+  return m ? m[0] + ' Grade' : '';
+}
+
+/* ---------- Render router ---------- */
+function render(){
+  const app = document.getElementById('app');
+  let html = '';
+  if(state.screen === 'name') html = renderName();
+  else if(state.screen === 'groups') html = renderGroups();
+  else if(state.screen === 'roster') html = renderRoster();
+  else if(state.screen === 'form') html = renderForm();
+  else if(state.screen === 'export') html = renderExport();
+  else if(state.screen === 'summaryGroups') html = renderSummaryGroups();
+  else if(state.screen === 'summary') html = renderSummary();
+  if(state.showExportPrompt){
+    html += renderExportPrompt();
+  }
+  app.innerHTML = html;
+  attachHandlers();
+}
+
+function renderExportPrompt(){
+  return `
+    <div class="modal-backdrop" id="export-prompt-backdrop">
+      <div class="modal-sheet">
+        <div class="modal-title">Save your progress?</div>
+        <div class="modal-body">You scored players in <strong>${escapeHtml(state.group||'')}</strong>. Download a CSV backup now — this data only lives on this device.</div>
+        <button class="btn btn-primary" id="modal-download">Download CSV</button>
+        <div class="spacer-16"></div>
+        <button class="btn btn-ghost" id="modal-dismiss">Not now</button>
+      </div>
+    </div>
+  `;
+}
+
+function groupHasSavedData(group){
+  if(!group || !ROSTER[group]) return false;
+  return ROSTER[group].players.some(p=>{
+    const rec = state.evalCache[playerId(group, p)];
+    return !!(rec && rec.updatedAt);
+  });
+}
+
+function leaveRoster(targetScreen){
+  if(groupHasSavedData(state.group)){
+    state.pendingScreen = targetScreen;
+    state.showExportPrompt = true;
+    render();
+  } else {
+    state.screen = targetScreen;
+    render();
+  }
+}
+
+/* ---------- Screens ---------- */
+
+function renderName(){
+  const girlsOptions = GIRLS_EVALUATORS.map(n=>`<option value="${n}" ${state.evaluator===n?'selected':''}>${n}</option>`).join('');
+  const boysOptions = BOYS_EVALUATORS.map(n=>`<option value="${n}" ${state.evaluator===n?'selected':''}>${n}</option>`).join('');
+  const girlsSelected = state.side === 'girls' && state.evaluator;
+  const boysSelected = state.side === 'boys' && state.evaluator;
+  return `
+    <div class="topbar">
+      <div class="topbar-row">
+        <div class="brand">LAKERS EVAL APP<small>2026–27 Season</small></div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="hero">
+        <div class="ball">🏀</div>
+        <h1>Let's get scoring</h1>
+        <p>Pick your evaluator name. Girls evaluators only see girls groups &amp; summary; boys evaluators only see boys. Your scores save automatically on this device and are still here if you close and reopen the app.</p>
+      </div>
+
+      <label class="field-label" for="girls-select">Girls Evaluator</label>
+      <select id="girls-select">
+        <option value="">Select…</option>
+        ${girlsOptions}
+      </select>
+      <div class="spacer-16"></div>
+      <button class="btn btn-primary" id="continue-girls" ${girlsSelected?'':'disabled'}>Continue — Girls</button>
+
+      <div class="spacer-24"></div>
+      <div class="section-label" style="margin:0 0 4px;">or</div>
+
+      <label class="field-label" for="boys-select">Boys Evaluator</label>
+      <select id="boys-select">
+        <option value="">Select…</option>
+        ${boysOptions}
+      </select>
+      <div class="spacer-16"></div>
+      <button class="btn btn-primary" id="continue-boys" ${boysSelected?'':'disabled'}>Continue — Boys</button>
+    </div>
+  `;
+}
+
+function renderGroups(){
+  const isGirls = state.side === 'girls';
+  const groups = GROUP_ORDER.filter(g=> isGirls ? g.startsWith('Girls') : g.startsWith('Boys'));
+  const card = (g) => {
+    const total = ROSTER[g].players.length;
+    return `<button class="group-card" data-group="${g}">
+      <div class="g-name">${g}</div>
+      <div class="g-progress">${total} players</div>
+    </button>`;
+  };
+  return `
+    <div class="topbar">
+      <div class="topbar-row">
+        <div class="brand">LAKERS EVAL APP<small>2026–27 Season</small></div>
+        <div class="evaluator-pill" id="change-evaluator"><span class="dot"></span>${escapeHtml(state.evaluator)}</div>
+      </div>
+      <div class="page-title">Pick a group</div>
+      <div class="page-sub">${isGirls?'Girls':'Boys'} groups only</div>
+    </div>
+    <div class="content">
+      <div class="group-grid">${groups.map(card).join('')}</div>
+      <div class="spacer-24"></div>
+      <button class="btn btn-secondary" id="go-summary">View Team Summary</button>
+      <div class="spacer-16"></div>
+      <button class="btn btn-ghost" id="go-export">Export all data (CSV)</button>
+    </div>
+  `;
+}
+
+function renderRoster(){
+  const group = state.group;
+  let players = ROSTER[group].players;
+  if(state.search.trim()){
+    const q = state.search.trim();
+    players = players.filter(p => String(p.num).includes(q));
+  }
+  const done = ROSTER[group].players.filter(p => {
+    const rec = state.evalCache[playerId(group, p)];
+    return !!(rec && rec.updatedAt);
+  }).length;
+  const total = ROSTER[group].players.length;
+
+  const rows = players.map(p=>{
+      const rec = state.evalCache[playerId(group, p)];
+      const hasFeedback = !!(rec && rec.updatedAt);
+      const sub = rosterSubLabel(rec);
+      return `<div class="roster-item" data-pid="${playerId(group, p)}">
+        <div class="jersey">${p.num}</div>
+        <div class="roster-name">
+          <div class="rn-main">Player ${p.num}</div>
+          <div class="rn-sub ${sub==='No rating'?'no-rating':''}">${escapeHtml(sub)}</div>
+        </div>
+        <div class="roster-status">
+          <div class="status-bubble ${hasFeedback?'has-feedback':''}">${icon('check')}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+  return `
+    <div class="topbar">
+      <div class="topbar-row">
+        <button class="back-btn" id="back-to-groups">${icon('back')} Groups</button>
+        <div class="evaluator-pill" id="change-evaluator"><span class="dot"></span>${escapeHtml(state.evaluator)}</div>
+      </div>
+      <div class="page-title">${group}</div>
+      <div class="page-sub">${done} of ${total} saved</div>
+    </div>
+    <div class="content">
+      <div class="search-box">
+        ${icon('search')}
+        <input type="text" id="roster-search" inputmode="numeric" placeholder="Search jersey number" value="${escapeHtml(state.search)}">
+      </div>
+      ${rows || `<div class="empty-state">${icon('empty')}<div>No players match your search.</div></div>`}
+    </div>
+  `;
+}
+
+function renderForm(){
+  const group = state.group;
+  const p = state.player;
+  const fd = state.formData;
+
+  const n = filledCount(fd);
+  const total = totalScore(fd);
+  const avg = averageScore(fd);
+  const rec = recommendationLabel(fd);
+  const scoreSummary = `
+    <div class="score-summary">
+      <div class="score-box">
+        <div class="sb-label">Total</div>
+        <div class="sb-value">${total} <span style="font-size:12px;color:var(--sub);">/ 25</span></div>
+      </div>
+      <div class="score-box">
+        <div class="sb-label">Average</div>
+        <div class="sb-value">${avg!=null ? avg.toFixed(2) : '—'}</div>
+      </div>
+      <div class="score-box sb-rec">
+        <div class="sb-label">Recommendation</div>
+        <div class="sb-value">${rec ? rec : (n+' of 5 scored')}</div>
+      </div>
+    </div>
+  `;
+
+  const body = CATEGORIES.map(c=>`
+    <div class="skill-block">
+      <span class="sk-label">${c.label}</span>
+      <div class="rate-row" data-field="score" data-key="${c.key}">
+        ${[1,2,3,4,5].map(v=>`<button class="rate-btn ${fd.scores[c.key]===v?'sel':''}" data-val="${v}">${v}</button>`).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="topbar">
+      <div class="topbar-row">
+        <button class="back-btn" id="back-to-roster">${icon('back')} ${group}</button>
+      </div>
+    </div>
+    <div class="content" style="padding-bottom:96px;">
+      <div class="player-header">
+        <div class="jersey">${p.num}</div>
+        <div>
+          <div class="ph-name">Player ${p.num}</div>
+          <div class="ph-sub">${gradeLabel(group)} · ${group.startsWith('Boys')?'Boys':'Girls'}</div>
+        </div>
+      </div>
+      ${fd.lastEditedBy ? `<div class="last-edited">Last edited by <strong>${escapeHtml(fd.lastEditedBy)}</strong>${fd.updatedAt ? ' · ' + timeAgo(fd.updatedAt) : ''}</div>` : ''}
+      ${scoreSummary}
+      ${body}
+    </div>
+    <div class="save-bar">
+      <button class="btn btn-primary" id="save-eval">Done</button>
+      <div class="save-note">Saved on this device — still here if you close and reopen (${escapeHtml(state.evaluator)})</div>
+    </div>
+  `;
+}
+
+function renderExport(){
+  return `
+    <div class="topbar">
+      <div class="topbar-row">
+        <button class="back-btn" id="back-to-groups-from-export">${icon('back')} Groups</button>
+      </div>
+      <div class="page-title">Export your data</div>
+      <div class="page-sub">Downloads everything saved on this device</div>
+    </div>
+    <div class="content">
+      <p style="font-size:13.5px;color:var(--sub);line-height:1.6;">
+        Ratings save automatically on this device — they'll still be here if you close and reopen the app,
+        but they aren't synced with other evaluators' devices.
+        Downloading will also open an email draft to Ben — just attach the file before sending.
+      </p>
+      <div class="spacer-16"></div>
+      <button class="btn btn-primary" id="do-export">Download my CSV</button>
+      <div class="spacer-16"></div>
+      <button class="btn btn-ghost" id="clear-data">Clear all data on this device</button>
+      <div id="export-status" style="margin-top:14px;font-size:13px;color:var(--sub);text-align:center;"></div>
+    </div>
+  `;
+}
+
+function renderSummaryGroups(){
+  const isGirls = state.side === 'girls';
+  const groups = GROUP_ORDER.filter(g=> isGirls ? g.startsWith('Girls') : g.startsWith('Boys'));
+  const card = (g) => {
+    const total = ROSTER[g].players.length;
+    return `<button class="group-card" data-summary-group="${g}">
+      <div class="g-name">${g}</div>
+      <div class="g-progress">${total} players</div>
+    </button>`;
+  };
+  return `
+    <div class="topbar">
+      <div class="topbar-row">
+        <button class="back-btn" id="back-to-groups-from-summary">${icon('back')} Groups</button>
+      </div>
+      <div class="page-title">Team Summary</div>
+      <div class="page-sub">${isGirls?'Girls':'Boys'} groups only</div>
+    </div>
+    <div class="content">
+      <div class="group-grid">${groups.map(card).join('')}</div>
+    </div>
+  `;
+}
+
+function renderSummary(){
+  const group = state.group;
+  const players = ROSTER[group].players;
+  const buckets = {elite:[], competitive:[], balanced:[], development:[], needsdev:[], inprogress:[], unrated:[]};
+  players.forEach(p=>{
+    const rec = state.evalCache[playerId(group, p)];
+    const bucket = summaryBucket(rec);
+    buckets[bucket].push({p, rec});
+  });
+
+  const section = (key, title, cssClass) => {
+    const list = buckets[key];
+    if(list.length === 0) return '';
+    const rows = list.map(({p, rec})=>`
+      <div class="summary-row">
+        <div class="jersey">${p.num}</div>
+        <div class="summary-info">
+          <div class="sr-name">Player ${p.num}</div>
+          <div class="sr-sub">${rec ? 'Total ' + totalScore(rec) + '/25' : 'Not yet scored'}</div>
+        </div>
+        <div class="sr-rating">${averageScore(rec)!=null ? averageScore(rec).toFixed(2) : '—'}</div>
+      </div>
+    `).join('');
+    return `
+      <div class="summary-section">
+        <div class="summary-title ${cssClass}">${title} <span class="summary-count">${list.length}</span></div>
+        ${rows}
+      </div>
+    `;
+  };
+
+  const bodyHtml = [
+    section('elite','Elite Team','st-elite'),
+    section('competitive','Competitive Team','st-competitive'),
+    section('balanced','Balanced Team','st-balanced'),
+    section('development','Development Team','st-development'),
+    section('needsdev','Needs More Development','st-needsdev'),
+    section('inprogress','In Progress','st-inprogress'),
+    section('unrated','Not Yet Rated','st-unrated')
+  ].join('');
+
+  return `
+    <div class="topbar">
+      <div class="topbar-row">
+        <button class="back-btn" id="back-to-summary-groups">${icon('back')} Groups</button>
+      </div>
+      <div class="page-title">${group} Summary</div>
+      <div class="page-sub">Recommended placement based on average score</div>
+    </div>
+    <div class="content">
+      ${bodyHtml}
+    </div>
+  `;
+}
+
+/* ---------- Handlers ---------- */
+
+function attachHandlers(){
+  const $ = (id) => document.getElementById(id);
+
+  if(state.showExportPrompt){
+    $('modal-download').addEventListener('click', ()=>{
+      runExportSilent();
+      state.showExportPrompt = false;
+      const target = state.pendingScreen || 'groups';
+      state.pendingScreen = null;
+      state.screen = target;
+      render();
+      showToast('CSV downloaded ✓');
+    });
+    $('modal-dismiss').addEventListener('click', ()=>{
+      state.showExportPrompt = false;
+      const target = state.pendingScreen || 'groups';
+      state.pendingScreen = null;
+      state.screen = target;
+      render();
+    });
+  }
+
+  if(state.screen === 'name'){
+    const girlsSelect = $('girls-select');
+    const boysSelect = $('boys-select');
+    girlsSelect.addEventListener('change', e=>{
+      $('continue-girls').disabled = !e.target.value;
+      if(e.target.value){ boysSelect.value = ''; $('continue-boys').disabled = true; }
+    });
+    boysSelect.addEventListener('change', e=>{
+      $('continue-boys').disabled = !e.target.value;
+      if(e.target.value){ girlsSelect.value = ''; $('continue-girls').disabled = true; }
+    });
+    $('continue-girls').addEventListener('click', ()=>{
+      if(!girlsSelect.value) return;
+      state.evaluator = girlsSelect.value;
+      state.side = 'girls';
+      state.screen = 'groups';
+      persistToLocal();
+      render();
+    });
+    $('continue-boys').addEventListener('click', ()=>{
+      if(!boysSelect.value) return;
+      state.evaluator = boysSelect.value;
+      state.side = 'boys';
+      state.screen = 'groups';
+      persistToLocal();
+      render();
+    });
+  }
+
+  if(state.screen === 'groups'){
+    document.querySelectorAll('.group-card').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        state.group = el.dataset.group;
+        state.search = '';
+        state.screen = 'roster';
+        render();
+      });
+    });
+    $('change-evaluator').addEventListener('click', ()=>{ state.screen='name'; render(); });
+    $('go-summary').addEventListener('click', ()=>{ state.screen='summaryGroups'; render(); });
+    $('go-export').addEventListener('click', ()=>{ state.screen='export'; render(); });
+  }
+
+  if(state.screen === 'roster'){
+    $('back-to-groups').addEventListener('click', ()=>{ leaveRoster('groups'); });
+    $('change-evaluator').addEventListener('click', ()=>{ leaveRoster('name'); });
+    const search = $('roster-search');
+    search.addEventListener('input', e=>{
+      state.search = e.target.value;
+      render();
+      const v = document.getElementById('roster-search');
+      v.focus();
+      v.setSelectionRange(v.value.length, v.value.length);
+    });
+    document.querySelectorAll('.roster-item').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const pid = el.dataset.pid;
+        const player = ROSTER[state.group].players.find(p=>playerId(state.group, p)===pid);
+        state.player = player;
+        state.formData = newFormData(state.group, player);
+        state.screen = 'form';
+        render();
+      });
+    });
+  }
+
+  if(state.screen === 'form'){
+    $('back-to-roster').addEventListener('click', ()=>{ state.screen='roster'; render(); });
+
+    document.querySelectorAll('[data-field="score"]').forEach(row=>{
+      row.querySelectorAll('.rate-btn').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          state.formData.scores[row.dataset.key] = parseInt(btn.dataset.val);
+          state.formData.updatedAt = new Date().toISOString();
+          state.formData.lastEditedBy = state.evaluator;
+          saveEval(state.formData);
+          render();
+        });
+      });
+    });
+
+    $('save-eval').addEventListener('click', ()=>{
+      state.screen = 'roster';
+      render();
+    });
+  }
+
+  if(state.screen === 'export'){
+    $('back-to-groups-from-export').addEventListener('click', ()=>{ state.screen='groups'; render(); });
+    $('do-export').addEventListener('click', runExport);
+    $('clear-data').addEventListener('click', ()=>{
+      if(confirm('This permanently deletes every saved evaluation on this device. Download a CSV backup first if you haven\'t. Continue?')){
+        clearLocalData();
+        showToast('All data cleared');
+        render();
+      }
+    });
+  }
+
+  if(state.screen === 'summaryGroups'){
+    $('back-to-groups-from-summary').addEventListener('click', ()=>{ state.screen='groups'; render(); });
+    document.querySelectorAll('[data-summary-group]').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        state.group = el.dataset.summaryGroup;
+        state.screen = 'summary';
+        render();
+      });
+    });
+  }
+
+  if(state.screen === 'summary'){
+    $('back-to-summary-groups').addEventListener('click', ()=>{ state.screen='summaryGroups'; render(); });
+  }
+}
+
+function downloadCSV(){
+  const headers = ['Group','Grade','Gender','Jersey #','Last Edited By',
+    'Effort','Basketball IQ & Awareness','Basketball Skills','Athletic Movement','Team Play',
+    'Total Score','Average Score','Overall Recommendation','Last Updated'];
+
+  const rows = [];
+  Object.values(state.evalCache).forEach(v=>{
+    const group = v.group;
+    if(!group || !ROSTER[group]) return;
+    const gradeMatch = group.match(/\d+/);
+    const gender = group.startsWith('Boys') ? 'Boys' : 'Girls';
+    const total = totalScore(v);
+    const avg = averageScore(v);
+    const rec = recommendationLabel(v);
+    rows.push([
+      group, gradeMatch?gradeMatch[0]:'', gender, v.num??'', v.lastEditedBy||'',
+      v.scores?.effort??'', v.scores?.iq??'', v.scores?.skills??'', v.scores?.movement??'', v.scores?.teamplay??'',
+      total, avg!=null?avg.toFixed(2):'', rec||'', v.updatedAt||''
+    ]);
+  });
+
+  if(rows.length === 0) return 0;
+
+  const csv = [headers, ...rows].map(r =>
+    r.map(cell => {
+      const s = String(cell ?? '');
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+    }).join(',')
+  ).join('\n');
+
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'tryout_evaluations_' + slug(state.evaluator || 'evaluator') + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  return rows.length;
+}
+
+function openEmailDraft(count){
+  const subject = encodeURIComponent('Tryout Evaluations CSV — ' + (state.evaluator || 'Evaluator'));
+  const body = encodeURIComponent(
+    'Attached: ' + count + ' player evaluation' + (count===1?'':'s') + '.\n\n' +
+    'Please attach the CSV file that was just downloaded to this device before sending — ' +
+    'this app can\'t attach files automatically, only email apps can.'
+  );
+  try{
+    window.location.href = 'mailto:Ben.denker@gmail.com?subject=' + subject + '&body=' + body;
+  }catch(e){}
+}
+
+function runExport(){
+  const statusEl = document.getElementById('export-status');
+  const count = downloadCSV();
+  if(count === 0){
+    statusEl.textContent = 'No saved evaluations yet on this device.';
+    return;
+  }
+  statusEl.textContent = `Done — exported ${count} evaluation${count===1?'':'s'}. Opening email to Ben…`;
+  setTimeout(()=>openEmailDraft(count), 400);
+}
+
+function runExportSilent(){
+  const count = downloadCSV();
+  if(count > 0){
+    setTimeout(()=>openEmailDraft(count), 400);
+  }
+  return count;
+}
+
+function icon(name){
+  const icons = {
+    back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+    chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>',
+    search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>',
+    empty: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01M8 15c1 1 2 1.5 4 1.5s3-.5 4-1.5"/></svg>'
+  };
+  return icons[name]||'';
+}
+
+function escapeHtml(s){
+  return (s||'').toString().replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+loadFromLocal();
+if(state.evaluator && state.side) state.screen = 'groups';
+render();
+
+// Best-effort: attempt a CSV download when the page is closing.
+// Not guaranteed by every browser (especially mobile Safari) — the
+// localStorage save on every tap is the real safety net; this is a bonus.
+let lastAutoDownloadCount = 0;
+window.addEventListener('pagehide', ()=>{
+  const count = Object.keys(state.evalCache).length;
+  if(count > 0 && count !== lastAutoDownloadCount){
+    try{ downloadCSV(); lastAutoDownloadCount = count; }catch(e){}
+  }
+});
+</script>
+</body>
+</html>
