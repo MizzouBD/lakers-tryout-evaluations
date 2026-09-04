@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
 <title>Lakers Eval App</title>
 <style>
@@ -388,61 +391,8 @@ textarea{min-height:50px;resize:vertical;font-family:'Inter';font-size:14px;padd
   padding:5px 9px;
 }
 
-.score-summary{
-  display:flex;
-  gap:8px;
-  margin:10px 0 4px;
-}
-.score-box{
-  flex:1;
-  background:var(--court);
-  border-radius:10px;
-  padding:10px 8px;
-  text-align:center;
-}
-.score-box .sb-label{
-  font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;
-  color:var(--sub);margin-bottom:2px;
-}
-.score-box .sb-value{
-  font-family:'Oswald',sans-serif;font-weight:700;font-size:19px;color:var(--navy);
-}
-.score-box.sb-rec{background:var(--navy);}
-.score-box.sb-rec .sb-label{color:#B9C2D6;}
-.score-box.sb-rec .sb-value{color:#fff;font-size:12.5px;line-height:1.25;padding-top:2px;}
-
-.summary-title.st-elite{background:var(--amber);color:#3A2A00;}
-.summary-title.st-competitive{background:var(--navy);color:#fff;}
-.summary-title.st-balanced{background:var(--white);color:var(--navy);border:1.5px solid var(--line);}
-.summary-title.st-development{background:var(--amber-dark);color:#fff;}
-.summary-title.st-needsdev{background:#B4400C;color:#fff;}
-.summary-title.st-inprogress{background:var(--court);color:var(--sub);border:1.5px solid var(--line);}
-
-.modal-backdrop{
-  position:fixed;inset:0;
-  background:rgba(19,42,66,0.55);
-  display:flex;align-items:flex-end;justify-content:center;
-  z-index:300;
-  padding:0;
-}
-.modal-sheet{
-  background:#fff;
-  border-radius:18px 18px 0 0;
-  padding:22px 20px calc(20px + env(safe-area-inset-bottom));
-  width:100%;
-  max-width:520px;
-  box-shadow:0 -8px 30px rgba(0,0,0,0.2);
-}
-.modal-title{
-  font-family:'Oswald',sans-serif;font-weight:700;font-size:18px;color:var(--navy);
-  margin-bottom:8px;
-}
-.modal-body{
-  font-size:13.5px;color:var(--sub);line-height:1.5;margin-bottom:18px;
-}
-.modal-body strong{color:var(--ink);}
-
 ::selection{background:var(--amber);color:#fff;}
+.btn:disabled{opacity:.55;cursor:not-allowed;}
 </style>
 </head>
 <body>
@@ -451,713 +401,130 @@ textarea{min-height:50px;resize:vertical;font-family:'Inter';font-size:14px;padd
 <div class="toast" id="toast"></div>
 
 <script>
+let ROSTER = {"Boys 3rd":{"isBoys":true,"players":[{"num":null,"first":"Brooks","last":"Blazek","lyteam":"","status":"New Player","school":"Lake Harriet Upper Campus"},{"num":null,"first":"Charlie","last":"Bosman","lyteam":"YMCA / MPLS parks & Rec","status":"New Player","school":"Kenwood Elementary"},{"num":null,"first":"Coen","last":"Daymont","lyteam":"Mpls Parks & Rec","status":"New Player","school":"Armatage"},{"num":null,"first":"Myles","last":"Emmil","lyteam":"Linden hills - park and rec","status":"New Player","school":"Lake harriet"},{"num":null,"first":"Zeke","last":"Fine","lyteam":"","status":"New Player","school":"Lake Harriet"},{"num":null,"first":"Sterling","last":"Flaherty","lyteam":"","status":"New Player","school":"Lake Harriet Upper"},{"num":null,"first":"Owen","last":"Hansel","lyteam":"Mpls parks and rec league","status":"New Player","school":"Armatage"},{"num":null,"first":"Thomas","last":"Huepfel","lyteam":"Community basketball","status":"New Player","school":"Burroughs"},{"num":null,"first":"Layton","last":"Johnson","lyteam":"YMCA - Advanced (4 years experience)","status":"New Player","school":"Lake Harriet Community School"},{"num":null,"first":"Owen","last":"Jorgensen","lyteam":"","status":"New Player","school":"Lake Harriett Upper Campus"},{"num":null,"first":"Julius","last":"Moreno","lyteam":"Minneapolis Parks Rec basketball","status":"New Player","school":"Burroughs"},{"num":null,"first":"Carson","last":"Staples","lyteam":"Mpls Parks & Rec 8U","status":"New Player","school":"Armatage Elementary"},{"num":null,"first":"Maddux","last":"Travaille","lyteam":"Southdale YMCA (2nd grade)","status":"New Player","school":"Kenny"},{"num":null,"first":"Maxwell","last":"Zunich","lyteam":"Rec boys 8u","status":"New Player","school":"Field Elementary"}]},"Boys 4th":{"isBoys":true,"players":[{"num":null,"first":"Oscar","last":"Backes","lyteam":"Has played rec league at Pearl Park","status":"New Player","school":"Burroughs"},{"num":null,"first":"Grayson","last":"Barnett","lyteam":"3rd Boys Black","status":"Returning Player","school":"Lake Harriet Upper"},{"num":null,"first":"Remi","last":"Bellmont","lyteam":"YMCA","status":"New Player","school":"Kenny"},{"num":null,"first":"Clay","last":"Dirlam","lyteam":"3rd Boys Black","status":"Returning Player","school":"Breck School"},{"num":null,"first":"Leo","last":"Doran","lyteam":"3rd Boys Black","status":"Returning Player","school":"Kenny"},{"num":null,"first":"Theodore (Teddy)","last":"Ervin","lyteam":"3rd Boys Purple","status":"Returning Player","school":"Burroughs"},{"num":null,"first":"Enzo","last":"Fanning","lyteam":"","status":"New Player","school":"Annunciation"},{"num":null,"first":"Leo","last":"Gibbons","lyteam":"3rd Boys Purple","status":"Returning Player","school":"Burroughs"},{"num":null,"first":"Owen","last":"Godfrey Walters","lyteam":"Richfield Basketball Association, grade 3-4","status":"New Player","school":"Kenny Elementary"},{"num":null,"first":"Sylvia","last":"Hall","lyteam":"3rd Girls Maroon","status":"Returning Player","school":"Kenny Elementary"},{"num":null,"first":"Bryson","last":"Hartley","lyteam":"Legacy hoops AAU spring","status":"New Player","school":"Kenwood"},{"num":null,"first":"Emilio","last":"Hillman","lyteam":"3rd Boys Black","status":"Returning Player","school":"Lake Harriet"},{"num":null,"first":"Kaison","last":"Ikeda","lyteam":"3rd Boys Purple","status":"Returning Player","school":"Annunciation"},{"num":null,"first":"Hugh","last":"Jones","lyteam":"3rd Boys Black","status":"Returning Player","school":"Yinghua Academy"},{"num":null,"first":"Caleb","last":"Koenig","lyteam":"3rd Boys Purple","status":"Returning Player","school":"Burroughs Elementary"},{"num":null,"first":"Andrew","last":"McQuiston","lyteam":"Didn't play last winter","status":"New Player","school":"Kenwood"},{"num":null,"first":"Grant","last":"Nelson","lyteam":"Carondelet grade school league","status":"New Player","school":"Carondelet"},{"num":null,"first":"Paige","last":"Nyquist","lyteam":"3rd Girls Maroon","status":"Returning Player","school":"Windom"},{"num":null,"first":"Rhys","last":"O'Rourke","lyteam":"Legacy Hoops Basketball Academy","status":"New Player","school":"Kenny Elementary"},{"num":null,"first":"Crosby","last":"Ohnstad","lyteam":"3rd Boys Purple","status":"Returning Player","school":"Burroughs"},{"num":null,"first":"Benjamin","last":"Otremba","lyteam":"Carondelet","status":"New Player","school":"Carondelet Catholic School"},{"num":null,"first":"Calvin","last":"Richards","lyteam":"3rd Boys Black","status":"Returning Player","school":"Burroughs"},{"num":null,"first":"Mateo","last":"Rosario","lyteam":"Parks and Rec","status":"New Player","school":"Keewaydin"},{"num":null,"first":"Alfred","last":"Rowe","lyteam":"Minneapolis Rec League","status":"New Player","school":"Breck"},{"num":null,"first":"Quin","last":"Webster","lyteam":"3rd Boys Purple","status":"Returning Player","school":"Barton"},{"num":null,"first":"Billy","last":"Wrigley","lyteam":"3rd Boys Black","status":"Returning Player","school":"Kenny"},{"num":null,"first":"Photios","last":"Zeris","lyteam":"3rd Boys Black","status":"Returning Player","school":"Lake Harriet Upper"}]},"Boys 5th":{"isBoys":true,"players":[{"num":null,"first":"Greyson","last":"Bacich","lyteam":"4th Boys White","status":"Returning Player","school":"Green Central"},{"num":null,"first":"Benjamin","last":"Bjork","lyteam":"Park basketball","status":"New Player","school":"Barton"},{"num":null,"first":"Eddie","last":"Buntje","lyteam":"4th Boys Gold","status":"Returning Player","school":"Burroughs"},{"num":null,"first":"Joseph","last":"Collins","lyteam":"4th Boys Gold","status":"Returning Player","school":"Lake Harriet"},{"num":null,"first":"Joshua","last":"Denker","lyteam":"5th Boys Gold","status":"Returning Player","school":"Lake Harriet Upper"},{"num":null,"first":"Liam","last":"Dormanen","lyteam":"4th Boys Gold","status":"Returning Player","school":"Annunciation"},{"num":null,"first":"Ravi","last":"Eyunni","lyteam":"","status":"New Player","school":"Burroughs"},{"num":null,"first":"Lincoln","last":"Forgrave","lyteam":"Minneapolis Rec League","status":"New Player","school":"Kenny Community School"},{"num":null,"first":"Greyson","last":"Foster","lyteam":"3rd Boys Black","status":"Returning Player","school":"Carondolet Catholic School"},{"num":null,"first":"Clayton","last":"Gerken","lyteam":"4th Boys White","status":"Returning Player","school":"Carondelet Catholic School"},{"num":null,"first":"Gus","last":"Goepferd","lyteam":"4th Boys Gold","status":"Returning Player","school":"Burroughs"},{"num":null,"first":"Henry","last":"Hennessy","lyteam":"4th Boys White","status":"Returning Player","school":"Blake"},{"num":null,"first":"Thomas","last":"Herriage","lyteam":"4th Boys White","status":"Returning Player","school":"Green Central"},{"num":null,"first":"Samuel","last":"Hofbauer","lyteam":"","status":"New Player","school":"Field Elementary"},{"num":null,"first":"Abel","last":"Kulas","lyteam":"4th Boys White","status":"Returning Player","school":"Armatage Elementary"},{"num":null,"first":"Otis","last":"Lewis","lyteam":"MLK park board","status":"New Player","school":"Barton"},{"num":null,"first":"Brex","last":"Mclain","lyteam":"4th Boys Gold","status":"Returning Player","school":"Field"},{"num":null,"first":"Graham","last":"Mekemson","lyteam":"Minneapolis parks and rec","status":"New Player","school":"Kenny"},{"num":null,"first":"Sawyer","last":"Moberg","lyteam":"4th Boys Gold","status":"Returning Player","school":"Armatage Elementary School"},{"num":null,"first":"Louis","last":"Montgomery","lyteam":"4th Boys Blue","status":"Returning Player","school":"Ella Baker"},{"num":null,"first":"Brooks","last":"Mueller","lyteam":"Club/Tournament Team in previous community","status":"New Player","school":"Burroughs"},{"num":null,"first":"Kai","last":"Parlange","lyteam":"4th Boys Blue","status":"Returning Player","school":"Kenny"},{"num":null,"first":"Jude","last":"Siepker","lyteam":"","status":"New Player","school":"Windom"},{"num":null,"first":"Neil","last":"Strom","lyteam":"4th Boys Blue","status":"Returning Player","school":"Kenny"},{"num":null,"first":"Emmett","last":"Tews","lyteam":"4th Boys Gold","status":"Returning Player","school":"Annunciation"},{"num":null,"first":"Adonis","last":"Villasenor","lyteam":"","status":"New Player","school":"Barton elementary"},{"num":null,"first":"Finn","last":"Wald","lyteam":"4th Boys Blue","status":"Returning Player","school":"Kenny"},{"num":null,"first":"Marcos","last":"Williams","lyteam":"4th Boys Blue","status":"Returning Player","school":"Emerson"},{"num":null,"first":"Graedon","last":"Witham","lyteam":"4th Boys Gold","status":"Returning Player","school":"Armatage"}]},"Boys 6th":{"isBoys":true,"players":[{"num":null,"first":"Emmanuel","last":"Anderson","lyteam":"5th Boys Gold","status":"Returning Player","school":"Minnehaha Academy"},{"num":null,"first":"Noah","last":"Anderson","lyteam":"5th Boys Gold","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Leo","last":"Appleby","lyteam":"YMCA","status":"New Player","school":"Anthony Middle School"},{"num":null,"first":"Archie","last":"Boone","lyteam":"5th Boys Black","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Eli","last":"Burke","lyteam":"5th Boys Purple","status":"Returning Player","school":"Sanford"},{"num":null,"first":"Miles","last":"Cohen","lyteam":"Mpls parks + rec","status":"New Player","school":"Justice Page"},{"num":null,"first":"James","last":"Dillon","lyteam":"5th Boys Black","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Cullen","last":"Eidel","lyteam":"MLK B","status":"New Player","school":"Justice Page"},{"num":null,"first":"Truman","last":"Evans","lyteam":"MLK","status":"New Player","school":"Carondelet"},{"num":null,"first":"Leo","last":"Florey","lyteam":"5th Boys Gold","status":"Returning Player","school":"Sanford"},{"num":null,"first":"Weston","last":"Halsne","lyteam":"Phelps Travel 12U","status":"New Player","school":"Annunciation"},{"num":null,"first":"Matthew","last":"Hoff","lyteam":"Edina Rec","status":"New Player","school":"Carondelet"},{"num":null,"first":"Kaydoe","last":"Huot","lyteam":"MLK","status":"New Player","school":"Justice Page Middle School"},{"num":null,"first":"Tommy","last":"Irgens","lyteam":"5th Boys Black","status":"Returning Player","school":"Breck"},{"num":null,"first":"Finnegan","last":"Jones","lyteam":"5th Boys Blue","status":"Returning Player","school":"Justice Page Middle School"},{"num":null,"first":"Anders","last":"Klopp","lyteam":"5th Boys Purple","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Elliot","last":"Knapp","lyteam":"5th Boys Blue","status":"Returning Player","school":"Anthony Middle School"},{"num":null,"first":"Arlo","last":"Lang","lyteam":"5th Boys Gold","status":"Returning Player","school":"Annu"},{"num":null,"first":"Maxwell","last":"Lockner","lyteam":"SSYO - B","status":"New Player","school":"Benilde St Margaret"},{"num":null,"first":"Dalmar","last":"Loftus","lyteam":"5th Boys Blue","status":"Returning Player","school":"Anthony"},{"num":null,"first":"Max","last":"Lyon","lyteam":"5th Boys Blue","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Leo","last":"McGuire","lyteam":"5th Boys Gold","status":"Returning Player","school":"Annunciation"},{"num":null,"first":"Dayne","last":"Mclain","lyteam":"5th Boys Blue","status":"Returning Player","school":"Justice page"},{"num":null,"first":"Milo","last":"Merkel","lyteam":"4th Boys Gold","status":"Returning Player","school":"Annunciation"},{"num":null,"first":"Isaac","last":"Meyers","lyteam":"5th Boys Black","status":"Returning Player","school":"Anthony"},{"num":null,"first":"Eli","last":"Nesser","lyteam":"5th Boys Purple","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Miles","last":"Norton","lyteam":"MLK Basketball Program","status":"New Player","school":"Justice Page Middle"},{"num":null,"first":"Elliot","last":"Olson","lyteam":"5th Boys Black","status":"Returning Player","school":"Anthony Middle School"},{"num":null,"first":"Kyle","last":"Osborn","lyteam":"5th grade team at school and parks a rec lynnhurst","status":"New Player","school":"minnehaha academy"},{"num":null,"first":"Leo","last":"Parker","lyteam":"","status":"New Player","school":"Justice Page Middle School"},{"num":null,"first":"Rhys","last":"Peterson","lyteam":"","status":"New Player","school":"Justice Page Middle School"},{"num":null,"first":"Simon","last":"Ruth","lyteam":"MLK","status":"New Player","school":"Justice Page"},{"num":null,"first":"Rory","last":"Ryan","lyteam":"5th Boys Blue","status":"Returning Player","school":"Anthony"},{"num":null,"first":"Ashton","last":"Staples","lyteam":"5th Boys Black","status":"Returning Player","school":"Anthony Middle School"},{"num":null,"first":"Hans","last":"Talle","lyteam":"","status":"New Player","school":"Sanford middle"},{"num":null,"first":"Hallie","last":"Williams, III","lyteam":"5th Boys Blue","status":"Returning Player","school":"Anthony Middle School"},{"num":null,"first":"Cyril","last":"Wrbsky","lyteam":"MLK - B5C","status":"New Player","school":"Anthony Middle School"},{"num":null,"first":"Nation","last":"Wright Jr","lyteam":"5th Boys Blue","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Matthias","last":"Yoakum","lyteam":"Phelps/Played Lakers Gold in 4th Grade","status":"New Player","school":"Minnehaha Academy"},{"num":null,"first":"Pamir","last":"Yucel","lyteam":"5th Boys Purple","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Aras","last":"Y\u00fccel","lyteam":"5th Boys Purple","status":"Returning Player","school":"Justice Page"}]},"Boys 7th":{"isBoys":true,"players":[{"num":null,"first":"Jay'Marion","last":"Alexander","lyteam":"","status":"New Player","school":"Sanford Middle School"},{"num":null,"first":"Cirocco","last":"Baregi","lyteam":"6th Boys Blue","status":"Returning Player","school":"Justice Page Middle School"},{"num":null,"first":"Caden","last":"Borgert-Salner","lyteam":"6th Boys Purple","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Auden","last":"Brown","lyteam":"6th Boys Purple","status":"Returning Player","school":"Justice Page Middle School"},{"num":null,"first":"Linus","last":"Buffington","lyteam":"6th Boys Blue","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"John (Jack)","last":"Cusick","lyteam":"6th Boys Purple","status":"Returning Player","school":"Carondelet"},{"num":null,"first":"Preston","last":"Dahlstrom","lyteam":"Hopkins C Team- winter, MN Thunder- Spring","status":"New Player","school":"Eagle Ridge Academy"},{"num":null,"first":"Niko","last":"DiFiore","lyteam":"6th Boys Gold","status":"Returning Player","school":"Carondelet"},{"num":null,"first":"Desmond","last":"Fossie","lyteam":"MLK","status":"New Player","school":"Anthony Middle School"},{"num":null,"first":"Sam","last":"Goepferd","lyteam":"6th Boys Blue","status":"Returning Player","school":"Justice Page Middle School"},{"num":null,"first":"Orson","last":"Gorin-Giedd","lyteam":"Heat C/B","status":"New Player","school":"Justice Page"},{"num":null,"first":"Vincent","last":"Hall","lyteam":"6th Boys Black","status":"Returning Player","school":"Anthony Middle School"},{"num":null,"first":"Oliver","last":"Henry","lyteam":"","status":"New Player","school":"Justice Page"},{"num":null,"first":"Samuel","last":"Herron","lyteam":"Southside Bulldogs B/C","status":"New Player","school":"Sanford Middle School"},{"num":null,"first":"Leo","last":"Hysell","lyteam":"Southside Bulldogs - level B/C","status":"New Player","school":"Sanford"},{"num":null,"first":"Cameron","last":"Johnson","lyteam":"4th Boys Gold","status":"Returning Player","school":"Anthony"},{"num":null,"first":"Joseph","last":"Kalscheur","lyteam":"6th Boys Blue","status":"Returning Player","school":"JUSTICE PAGE"},{"num":null,"first":"Brayden","last":"Kessler","lyteam":"","status":"New Player","school":"Annunciation"},{"num":null,"first":"Henry","last":"Kimer","lyteam":"Carondelet Catholic School","status":"New Player","school":"Carondelet Catholic School"},{"num":null,"first":"Tyler","last":"Kornecki","lyteam":"6th Boys Black","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Willem","last":"Ladyzhynsky","lyteam":"6th Boys Purple","status":"Returning Player","school":"justice page"},{"num":null,"first":"Zack","last":"Lane","lyteam":"6th Boys Black","status":"Returning Player","school":"Anthony"},{"num":null,"first":"William","last":"McCarthy","lyteam":"6th Boys Black","status":"Returning Player","school":"Benilde St. Margaret's"},{"num":null,"first":"Francis","last":"Mendez","lyteam":"6th Boys Purple","status":"Returning Player","school":"Sanford"},{"num":null,"first":"Jack","last":"Miller","lyteam":"6th Boys Gold","status":"Returning Player","school":"Blake"},{"num":null,"first":"Neil","last":"Miller","lyteam":"6th Boys Black","status":"Returning Player","school":"Andersen United Middle School"},{"num":null,"first":"Carlo","last":"Minutaglio","lyteam":"MLKL","status":"New Player","school":"Justice Page"},{"num":null,"first":"Calvin","last":"Mohs","lyteam":"MLK MPLS","status":"New Player","school":"Anthony"},{"num":null,"first":"Frank","last":"Moksnes","lyteam":"6th Boys Gold","status":"Returning Player","school":"Andersen Spanish Immersion"},{"num":null,"first":"Grady","last":"Nelson Calhoun","lyteam":"MLK","status":"New Player","school":"Sanford middle"},{"num":null,"first":"Jack","last":"Oehler","lyteam":"6th Boys Blue","status":"Returning Player","school":"Anthony"},{"num":null,"first":"Charlie","last":"Olson","lyteam":"6th Boys Blue","status":"Returning Player","school":"Anthony Middle"},{"num":null,"first":"Oliver","last":"Orcholski","lyteam":"6th Boys Purple","status":"Returning Player","school":"Sanford"},{"num":null,"first":"Saku","last":"Pierson","lyteam":"6th Boys Black","status":"Returning Player","school":"Justice Page Middle School"},{"num":null,"first":"Joshua","last":"Reed","lyteam":"City of Lakes Waldorf school - second year playing","status":"New Player","school":"City of Lakes Waldorf"},{"num":null,"first":"Jack","last":"Rittenhouse","lyteam":"6th Boys Black","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Solon","last":"Rosario","lyteam":"6th Boys Gold","status":"Returning Player","school":"St Helana's"},{"num":null,"first":"Jesse","last":"Rosen","lyteam":"6th Boys Gold","status":"Returning Player","school":"Justice page"},{"num":null,"first":"Morgan","last":"Schulz","lyteam":"6th Boys Blue","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Theodore","last":"Schweigert","lyteam":"MLK Travel Team","status":"New Player","school":"Justice Page"},{"num":null,"first":"Alexander","last":"Sherburne","lyteam":"MLK 6th Grade Boys B","status":"New Player","school":"Anthony Middle School"},{"num":null,"first":"Bennett","last":"Steadland","lyteam":"6th Boys Gold","status":"Returning Player","school":"Justice Page MS"},{"num":null,"first":"Drake","last":"Steenhoek","lyteam":"South Side Minneapolis Bulldogs 6th grade team","status":"New Player","school":"Sanford"},{"num":null,"first":"Dominic","last":"Thuente","lyteam":"OneCity - non MYAS","status":"New Player","school":"St. Charles Borromeo"},{"num":null,"first":"Oliver","last":"Tjaden","lyteam":"4th Boys Gold","status":"Returning Player","school":"Justice page"},{"num":null,"first":"Isaac","last":"Turkus","lyteam":"6th Boys Black","status":"Returning Player","school":"Anthony Middle School"},{"num":null,"first":"Leo","last":"Wald","lyteam":"6th Boys Blue","status":"Returning Player","school":"Anthony"},{"num":null,"first":"James","last":"Watercott","lyteam":"MLK 12U in 25-26 season, MN Heat spring AAU '26","status":"New Player","school":"Justice Page Middle School"},{"num":null,"first":"Ernest","last":"Watts","lyteam":"Legacy Hoops Fall Development League; Park and Rec KennyArmatage","status":"New Player","school":"Anthony Middle School"},{"num":null,"first":"Samuel","last":"Wetjen","lyteam":"6th Boys Black","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Nathan","last":"Wissink","lyteam":"6th Boys Purple","status":"Returning Player","school":"Breck"}]},"Boys 8th":{"isBoys":true,"players":[{"num":null,"first":"Brady","last":"Allardyce","lyteam":"7th Boys White","status":"Returning Player","school":"Sanford"},{"num":null,"first":"Harrison","last":"Anhut","lyteam":"7th Boys Gold","status":"Returning Player","school":"Anthony"},{"num":null,"first":"Wesley","last":"Browne","lyteam":"MLK","status":"New Player","school":"Justice Page"},{"num":null,"first":"Jauhem","last":"Byrd Jr","lyteam":"St. Anthony A team","status":"New Player","school":"St. Charles Borromeo"},{"num":null,"first":"Quinn","last":"Carlson","lyteam":"7th Boys Gold","status":"Returning Player","school":"Carondelet"},{"num":null,"first":"Harry","last":"Daman","lyteam":"7th Boys White","status":"Returning Player","school":"Annunciation"},{"num":null,"first":"Owen","last":"Downey","lyteam":"7th Boys Blue","status":"Returning Player","school":"Carondelet"},{"num":null,"first":"Xavier","last":"Engrav","lyteam":"7th Boys Blue","status":"Returning Player","school":"Carondelet"},{"num":null,"first":"Vincent","last":"Griak","lyteam":"7th Boys Gold","status":"Returning Player","school":"Carondelet Catholic School"},{"num":null,"first":"Isaac","last":"Hanson-Krohn","lyteam":"7th Boys Blue","status":"Returning Player","school":"Carondelet"},{"num":null,"first":"Henry","last":"Hauschild","lyteam":"7th Boys White","status":"Returning Player","school":"Breck"},{"num":null,"first":"Levi","last":"Howes","lyteam":"7th Boys Blue","status":"Returning Player","school":"Lake Country Montessori"},{"num":null,"first":"Gavin","last":"Knox","lyteam":"7th Boys Blue","status":"Returning Player","school":"Sanford Middle School"},{"num":null,"first":"Dario","last":"Lang","lyteam":"7th Boys White","status":"Returning Player","school":"Annunciation Catholic School"},{"num":null,"first":"Nash","last":"Larson","lyteam":"MLK MPLS C Team","status":"New Player","school":"Justice Page Middle School"},{"num":null,"first":"Gino","last":"McGraw-Williams","lyteam":"Takeover","status":"New Player","school":"Justice Paige"},{"num":null,"first":"Leo","last":"McKay","lyteam":"7th Boys Gold","status":"Returning Player","school":"Anthony Middle School"},{"num":null,"first":"Wyatt","last":"Moberg","lyteam":"7th Boys Blue","status":"Returning Player","school":"Anthony Middle School"},{"num":null,"first":"Niko","last":"Olson","lyteam":"7th Boys Blue","status":"Returning Player","school":"Sanford Middle School"},{"num":null,"first":"Zachary","last":"Staab","lyteam":"7th Boys White","status":"Returning Player","school":"Anthony Middle School"},{"num":null,"first":"Walter","last":"Teasdale","lyteam":"7th Boys Gold","status":"Returning Player","school":"Sanford Middle School"},{"num":null,"first":"Thomas","last":"Vessel","lyteam":"Edina Travel Basketball","status":"New Player","school":"Carondelet Catholic School (Minneapolis)"},{"num":null,"first":"Colin","last":"Voss","lyteam":"7th Boys White","status":"Returning Player","school":"Carondelet"},{"num":null,"first":"Simon","last":"Wilde","lyteam":"7th Boys White","status":"Returning Player","school":"Anthony"}]},"Girls 3rd":{"isBoys":false,"players":[{"num":null,"first":"Amelia","last":"Ames","lyteam":"3rd Girls Black","status":"Returning Player","school":"Keewaydin"},{"num":null,"first":"Helen","last":"Anderson Denny","lyteam":"Minneapolis Park and Rec","status":"New Player","school":"Barton Elementary"},{"num":null,"first":"Fiona","last":"Burke","lyteam":"Minneapolis Park and Rec 8U girls","status":"New Player","school":"Keewaydin"},{"num":null,"first":"Sloane","last":"Queeney","lyteam":"Carondelet Catholic School","status":"New Player","school":"Carondelet Catholic school"},{"num":null,"first":"Quinn","last":"Tutewohl","lyteam":"Minneapolis Parks and Rec 8u (2 years) Legacy Hoops 5v5 summer Fridays (2 years)","status":"New Player","school":"Lake Harriet Community School"}]},"Girls 4th":{"isBoys":false,"players":[{"num":null,"first":"Adelaide","last":"Barland","lyteam":"3rd Girls Black","status":"Returning Player","school":"field"},{"num":null,"first":"Scarlett","last":"Bielke","lyteam":"Park and rec","status":"New Player","school":"Kenny"},{"num":null,"first":"Reagan","last":"Borgert-Salner","lyteam":"Mpls Park and Rec","status":"New Player","school":"Barton Elementary"},{"num":null,"first":"Cora","last":"Christenson","lyteam":"3rd Girls Black","status":"Returning Player","school":"Lake Harriet Community"},{"num":null,"first":"Maria","last":"DeBoer","lyteam":"3rd Girls Purple","status":"Returning Player","school":"Annunciation"},{"num":null,"first":"Dahlia","last":"DeLong","lyteam":"Pearl Rec Basketball","status":"New Player","school":"Risen Christ"},{"num":null,"first":"Blake","last":"Dormanen","lyteam":"3rd Girls Purple","status":"Returning Player","school":"Annunciation"},{"num":null,"first":"Una","last":"Fanning","lyteam":"","status":"New Player","school":"Annunciation"},{"num":null,"first":"Elowen","last":"Halbach","lyteam":"3rd Girls Purple","status":"Returning Player","school":"Keewaydin"},{"num":null,"first":"Vina","last":"Hannack","lyteam":"3rd Girls Maroon","status":"Returning Player","school":"Green Central"},{"num":null,"first":"Kate","last":"Hunt","lyteam":"None","status":"New Player","school":"Carondelet Catholic School"},{"num":null,"first":"Margaret","last":"Kiedrowski","lyteam":"3rd Girls Black","status":"Returning Player","school":"Breck"},{"num":null,"first":"June","last":"Kuncel","lyteam":"3rd Girls Purple","status":"Returning Player","school":"Annunciation"},{"num":null,"first":"Victoria","last":"Ladyzhynsky","lyteam":"3rd Girls Maroon","status":"Returning Player","school":"burroughs"},{"num":null,"first":"Olive","last":"Lassetter-Payne","lyteam":"","status":"New Player","school":"Windom Elementary"},{"num":null,"first":"Eden","last":"Loch","lyteam":"3rd Girls Purple","status":"Returning Player","school":"Annunciation School"},{"num":null,"first":"Liv","last":"Madson","lyteam":"3rd Girls Purple","status":"Returning Player","school":"King of Grace"},{"num":null,"first":"Mia","last":"McHenry","lyteam":"3rd Girls Black","status":"Returning Player","school":"Lake Harriet Community School"},{"num":null,"first":"Henrietta","last":"Mesenhowski","lyteam":"3rd Girls Black","status":"Returning Player","school":"Barton"},{"num":null,"first":"Violet","last":"Neiman","lyteam":"3rd Girls Maroon","status":"Returning Player","school":"Armatage"},{"num":null,"first":"Gia","last":"Ness-Wolters","lyteam":"Eden Prairie Girls Basketball Association, In-House","status":"New Player","school":"Carondelet Catholic School"},{"num":null,"first":"Claire","last":"Niebuhr","lyteam":"Rec Minneapolis Parks","status":"New Player","school":"Field Elementary"},{"num":null,"first":"Layla","last":"Rapacz","lyteam":"MPRB 10U","status":"New Player","school":"Field Elementary"},{"num":null,"first":"Neva","last":"Ryan","lyteam":"3rd Girls Black","status":"Returning Player","school":"Lake Harriet Upper"},{"num":null,"first":"Reilly","last":"Ryan","lyteam":"3rd Girls Maroon","status":"Returning Player","school":"Armatage"},{"num":null,"first":"Maxine","last":"Schwartz","lyteam":"None","status":"New Player","school":"Breck School"},{"num":null,"first":"Freya","last":"Walker","lyteam":"3rd Girls Black","status":"Returning Player","school":"Lake Harriet Upper"},{"num":null,"first":"Lydia","last":"West","lyteam":"Mpls Rec","status":"New Player","school":"Burroughs"},{"num":null,"first":"Cecelia","last":"Wrbsky","lyteam":"Mpls Park & Rec","status":"New Player","school":"Windom Elementary"},{"num":null,"first":"Naomi","last":"Zanko","lyteam":"3rd Girls Purple","status":"Returning Player","school":"Lake Nokomis- Keewaydin"}]},"Girls 5th":{"isBoys":false,"players":[{"num":null,"first":"Harper","last":"Anderson","lyteam":"4th Girls Purple","status":"Returning Player","school":"Lake Harriet Community School"},{"num":null,"first":"Sydney","last":"Baumel","lyteam":"4th Girls Black","status":"Returning Player","school":"Breck"},{"num":null,"first":"Luna","last":"Cedar","lyteam":"Parks and Rec, Age 10 group","status":"New Player","school":"Burroughs"},{"num":null,"first":"Evelyn","last":"Donoghue","lyteam":"Basketball through community Ed summer program","status":"New Player","school":"Lake Harriet Upper"},{"num":null,"first":"Josslin","last":"Fischer","lyteam":"4th Girls Gold","status":"Returning Player","school":"Breck"},{"num":null,"first":"Hazel","last":"Flaherty","lyteam":"4th Girls Purple","status":"Returning Player","school":"Lake Harriet Upper"},{"num":null,"first":"Clara","last":"Haggerty","lyteam":"MPRB 11U","status":"New Player","school":"Whittier International Elementary"},{"num":null,"first":"Fiona","last":"Hall","lyteam":"Mpls Park Board 11U","status":"New Player","school":"Burroughs"},{"num":null,"first":"Patrice","last":"Kaplan","lyteam":"4th Girls Purple","status":"Returning Player","school":"Lake Harriet Community School"},{"num":null,"first":"Sigrid","last":"Kaplan","lyteam":"4th Girls Purple","status":"Returning Player","school":"Lake Harriet Community School"},{"num":null,"first":"Vivienne","last":"Kelley","lyteam":"4th Girls Purple","status":"Returning Player","school":"Lake Harriet Community School"},{"num":null,"first":"Margaret","last":"Kindem","lyteam":"4th Girls Black","status":"Returning Player","school":"Burroughs"},{"num":null,"first":"Chloe","last":"Kornecki","lyteam":"Lynnhurst Rec","status":"New Player","school":"Burroughs"},{"num":null,"first":"Elsie","last":"Kurtz","lyteam":"4th Girls Black","status":"Returning Player","school":"Windom Community School"},{"num":null,"first":"Balela","last":"Mazwi","lyteam":"Minneapolis Parks and rec","status":"New Player","school":"Eagle ridge academy"},{"num":null,"first":"Adalynn","last":"Neiman","lyteam":"4th Girls Black","status":"Returning Player","school":"Armatage"},{"num":null,"first":"Scout","last":"Queeney","lyteam":"Carondelet Catholic School team","status":"New Player","school":"Carondelet Catholic School"},{"num":null,"first":"Stella","last":"Sundman","lyteam":"4th Girls Black","status":"Returning Player","school":"Green Central"},{"num":null,"first":"Lila","last":"Uran","lyteam":"4th Girls Purple","status":"Returning Player","school":"Richfield Dual Language School"},{"num":null,"first":"Eleanor","last":"Watercott","lyteam":"4th Girls Black","status":"Returning Player","school":"Clara Barton Elementary"},{"num":null,"first":"Alma","last":"Youngdahl","lyteam":"4th Girls Purple","status":"Returning Player","school":"Lake Harriet Upper"}]},"Girls 6th":{"isBoys":false,"players":[{"num":null,"first":"Willow","last":"Carter","lyteam":"5th Girls Gold","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Lucy","last":"Driscoll","lyteam":"5th Girls Blue","status":"Returning Player","school":"Justice page"},{"num":null,"first":"Peyton","last":"Emmil","lyteam":"5th Girls Blue","status":"Returning Player","school":"Anthony middle"},{"num":null,"first":"Annesly","last":"Groteboer","lyteam":"5th Girls Blue","status":"Returning Player","school":"Anthony"},{"num":null,"first":"Stella","last":"Johnson","lyteam":"5th Girls Gold","status":"Returning Player","school":"Anthony"},{"num":null,"first":"Claire","last":"Kearin","lyteam":"MLK MPLS - played up in 6th grade as 5th grader","status":"New Player","school":"Anthony"},{"num":null,"first":"Emily","last":"Mandujano","lyteam":"AAU - Takeover Hoops","status":"New Player","school":"Our Lady of Peace"},{"num":null,"first":"Maeve","last":"Morrison","lyteam":"5th Girls Gold","status":"Returning Player","school":"Carondelet Catholic School"},{"num":null,"first":"Zealia","last":"Paldron","lyteam":"5th Girls Gold","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Mae","last":"Perkins","lyteam":"5th Girls Blue","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Ivy","last":"Petersen","lyteam":"YMCA and Mpls rec league 11u","status":"New Player","school":"Anthony"},{"num":null,"first":"Georgia","last":"Peterson","lyteam":"5th Girls Gold","status":"Returning Player","school":"Our Lady of Peace"},{"num":null,"first":"Lydia","last":"Rapacz","lyteam":"MPRB 13U","status":"New Player","school":"Justice Page Middle School"},{"num":null,"first":"Astoria","last":"Safe","lyteam":"6th Girls Gold","status":"Returning Player","school":"Annunciation Catholic School"},{"num":null,"first":"Audrey","last":"Senger","lyteam":"5th Girls Gold","status":"Returning Player","school":"Carondelet Catholic School"},{"num":null,"first":"Beatrice","last":"Seymore","lyteam":"School League and AAU - Takeover (6th grade team)","status":"New Player","school":"Carondelet Catholic School"},{"num":null,"first":"Hollis","last":"Walker","lyteam":"5th Girls Gold","status":"Returning Player","school":"Anthony Middle"}]},"Girls 7th":{"isBoys":false,"players":[{"num":null,"first":"Vivian","last":"Anderson Denny","lyteam":"6th Girls White","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Audrey","last":"Byrnes","lyteam":"6th Girls White","status":"Returning Player","school":"Annunciation"},{"num":null,"first":"Anna","last":"Christenson","lyteam":"6th Girls White","status":"Returning Player","school":"Anthony Middle"},{"num":null,"first":"Willa","last":"Gaeckle","lyteam":"6th Girls Blue","status":"Returning Player","school":"Anthony Middle School"},{"num":null,"first":"Josephine","last":"Grangaard","lyteam":"6th Girls Blue","status":"Returning Player","school":"Anthony"},{"num":null,"first":"Gianna","last":"Hillman","lyteam":"6th Girls Blue","status":"Returning Player","school":"Anthony"},{"num":null,"first":"Olivia","last":"Juran","lyteam":"6th Girls White","status":"Returning Player","school":"Annunciation"},{"num":null,"first":"Tessa","last":"Kenney","lyteam":"6th Girls White","status":"Returning Player","school":"Anthony"},{"num":null,"first":"Elizabeth","last":"Kiedrowski","lyteam":"6th Girls Gold","status":"Returning Player","school":"Breck"},{"num":null,"first":"Winnie","last":"Madson","lyteam":"6th Girls Gold","status":"Returning Player","school":"King of Grace"},{"num":null,"first":"Eloise","last":"McHenry","lyteam":"parks and rec and Justice page basketball","status":"New Player","school":"Justice Page"},{"num":null,"first":"Solveig","last":"Raw","lyteam":"6th Girls Blue","status":"Returning Player","school":"Northeast Middle School"},{"num":null,"first":"Ella","last":"Sand","lyteam":"6th Girls White","status":"Returning Player","school":"Justice Page"},{"num":null,"first":"Lucille","last":"Swan-Garton","lyteam":"6th Girls White","status":"Returning Player","school":"Justice Page Middle School"},{"num":null,"first":"Claire","last":"Voorhies","lyteam":"Minneapolis Parks and Rec","status":"New Player","school":"Emerson Dual Language (MPS)"},{"num":null,"first":"Ida","last":"Walker","lyteam":"6th Girls Gold","status":"Returning Player","school":"Anthony"},{"num":null,"first":"Harper","last":"Wilhelm","lyteam":"6th Girls Blue","status":"Returning Player","school":"Sacred Heart Catholic School"},{"num":null,"first":"Chloe","last":"Willis","lyteam":"6th Girls Gold","status":"Returning Player","school":"Anthony Middle School"},{"num":null,"first":"Claire","last":"Zelaya","lyteam":"6th Girls White","status":"Returning Player","school":"Anthony"}]},"Girls 8th":{"isBoys":false,"players":[{"num":null,"first":"Margaret","last":"Deck","lyteam":"7th Girls White","status":"Returning Player","school":"Annunciation"},{"num":null,"first":"Sloane","last":"Esso","lyteam":"7th Boys Blue","status":"Returning Player","school":"Sanford Middle School"},{"num":null,"first":"Ruby","last":"Gottschalk","lyteam":"7th Girls Gold","status":"Returning Player","school":"Anthony"},{"num":null,"first":"Celia","last":"Hendrickson","lyteam":"7th Girls White","status":"Returning Player","school":"Anthony"},{"num":null,"first":"Malia","last":"Ikeda","lyteam":"","status":"New Player","school":"Annunciation"},{"num":null,"first":"Poppy","last":"Swenson","lyteam":"7th Girls White","status":"Returning Player","school":"Anthony Middle School"}]}};
+
+const BOYS_SKILLS = ["DRIBBLING","SHOOTING","LAYUPS (LH)","LAYUPS (RH)","DEFENSE","BASKETBALL IQ","TEAM PLAY"];
+const GIRLS_DRILLS = ["Defense","Shooting","Dribbling","Basketball IQ"];
+const GAME_GRADES = ["A","A-","B+","B","B-","C+","C-","C","REC"];
+const GIRLS_RATINGS = [
+  {v:1,l:"1 · Waitlist"},
+  {v:2,l:"2 · Travel C"},
+  {v:3,l:"3 · Travel B/C"},
+  {v:4,l:"4 · Travel B"},
+  {v:5,l:"5 · Travel A"}
+];
+
 const GROUP_ORDER = ["Boys 3rd","Boys 4th","Boys 5th","Boys 6th","Boys 7th","Boys 8th",
                      "Girls 3rd","Girls 4th","Girls 5th","Girls 6th","Girls 7th","Girls 8th"];
 
-const GIRLS_EVALUATORS = ["Girls 1","Girls 2","Girls 3","Girls 4"];
-const BOYS_EVALUATORS = ["Boys 1","Boys 2","Boys 3","Boys 4"];
-
-const JERSEY_MIN = 1;
-const JERSEY_MAX = 75;
-
-const CATEGORIES = [
-  {key:'effort', label:'Effort'},
-  {key:'iq', label:'Basketball IQ & Awareness'},
-  {key:'skills', label:'Basketball Skills'},
-  {key:'movement', label:'Athletic Movement'},
-  {key:'teamplay', label:'Team Play'}
-];
-
-const ROSTER = {};
-GROUP_ORDER.forEach(g=>{
-  const players = [];
-  for(let n=JERSEY_MIN; n<=JERSEY_MAX; n++){ players.push({num:n}); }
-  ROSTER[g] = { isBoys: g.startsWith('Boys'), players };
-});
-
-let state = {
-  screen: 'name',      // name | groups | roster | form | export | summaryGroups | summary
-  evaluator: '',
-  side: null,           // 'girls' | 'boys'
-  group: null,
-  player: null,
-  search: '',
-  evalCache: {},         // pid -> record, in-memory for this session across all groups
-  formData: null,
-  showExportPrompt: false,
-  pendingScreen: null
+const GIRLS_EVALUATORS = ["Girls 1","Girls 2","Girls 3","Girls 4","Girls 5","Girls 6","Girls 7","Girls 8"];
+const BOYS_EVALUATORS = ["Boys 1","Boys 2","Boys 3","Boys 4","Boys 5","Boys 6","Boys 7","Boys 8"];
+const FIREBASE_DEFAULT = {
+  apiKey:"AIzaSyCDj7c6E8MWJUO1weGT3shQ93h7tucCDAg",
+  authDomain:"lakers-tryout-evaluations.firebaseapp.com",
+  databaseURL:"https://lakers-tryout-evaluations-default-rtdb.firebaseio.com",
+  projectId:"lakers-tryout-evaluations",
+  storageBucket:"lakers-tryout-evaluations.firebasestorage.app",
+  messagingSenderId:"179242013831",
+  appId:"1:179242013831:web:5d892e4d3e4a3abec59422"
 };
-
-function playerId(group, p){
-  return 'p_' + slug(group) + '_' + p.num;
+let state={screen:'login',evaluator:'',evaluatorKey:'',side:null,group:null,player:null,search:'',masterEvals:{},dbReady:false,dbStatus:'Not connected',firebaseConfig:FIREBASE_DEFAULT,user:null,role:null,authReady:false,rosterReady:false,dirty:false,pendingWrites:0};
+const DB_CONFIG_KEY='lakers_eval_firebase_config_v5';
+const LOCAL_KEY='lakers_eval_local_backup_v5';
+const PENDING_KEY='lakers_eval_pending_v5';
+const DEVICE_KEY='lakers_eval_device_v5';
+const DB_PATH='lakers_tryouts_2026_27';
+let deviceId=''; try { deviceId=localStorage.getItem(DEVICE_KEY)||''; } catch(e) {} if(!deviceId){ try { deviceId=(globalThis.crypto&&typeof globalThis.crypto.randomUUID==='function')?globalThis.crypto.randomUUID():''; } catch(e) {} } if(!deviceId) deviceId='dev_'+Date.now()+'_'+Math.random().toString(36).slice(2); try{localStorage.setItem(DEVICE_KEY,deviceId)}catch(e){}
+const IDB_NAME='lakers_eval_local_v1',IDB_STORE='kv';
+let idb=null;
+function slug(s){return(s||'').toString().toLowerCase().replace(/[^a-z0-9]+/g,'')}
+function playerId(p){return (p.num??'x')+'_'+slug(p.first)+'_'+slug(p.last)}
+function evalKey(pid,evaluatorKey){return slug(evaluatorKey)+'__'+pid}
+function getMyEval(pid){return state.masterEvals?.[pid]?.[slug(state.evaluatorKey)]||null}
+function getPlayerEvals(pid){return Object.values(state.masterEvals?.[pid]||{}).filter(Boolean)}
+function countPlayerEvals(pid){return getPlayerEvals(pid).filter(r=>r.updatedAt).length}
+function allEvalRecords(){const out=[];Object.values(state.masterEvals||{}).forEach(x=>Object.values(x||{}).forEach(r=>{if(r?.updatedAt)out.push(r)}));return out}
+function showToast(msg){const t=document.getElementById('toast');if(t){t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}}
+function idbOpen(){return new Promise((resolve,reject)=>{if(idb)return resolve(idb);if(!('indexedDB'in window))return resolve(null);const r=indexedDB.open(IDB_NAME,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(IDB_STORE))r.result.createObjectStore(IDB_STORE)};r.onsuccess=()=>{idb=r.result;resolve(idb)};r.onerror=()=>resolve(null)})}
+async function idbGet(key){const d=await idbOpen();if(!d)return null;return new Promise(res=>{const q=d.transaction(IDB_STORE,'readonly').objectStore(IDB_STORE).get(key);q.onsuccess=()=>res(q.result??null);q.onerror=()=>res(null)})}
+async function idbSet(key,val){const d=await idbOpen();if(!d)return false;return new Promise(res=>{const q=d.transaction(IDB_STORE,'readwrite').objectStore(IDB_STORE).put(val,key);q.onsuccess=()=>res(true);q.onerror=()=>res(false)})}
+function persistLocal(){try{localStorage.setItem(LOCAL_KEY,JSON.stringify(state.masterEvals));localStorage.setItem('lakers_eval_last_saved_v5',new Date().toISOString());idbSet('evals',state.masterEvals);return true}catch(e){state.dbStatus='Local storage issue — export immediately';return false}}
+function loadLocalBackup(){try{return JSON.parse(localStorage.getItem(LOCAL_KEY)||'{}')||{}}catch(e){return {}}}
+function loadPending(){try{return JSON.parse(localStorage.getItem(PENDING_KEY)||'[]')||[]}catch(e){return []}}
+function savePending(a){try{localStorage.setItem(PENDING_KEY,JSON.stringify(a));idbSet('pending',a);state.pendingWrites=a.length}catch(e){}}
+async function hydrateLocal(){const idbE=await idbGet('evals');if(idbE&&typeof idbE==='object')state.masterEvals=idbE;else state.masterEvals=loadLocalBackup();const pend=await idbGet('pending');if(Array.isArray(pend)){localStorage.setItem(PENDING_KEY,JSON.stringify(pend));state.pendingWrites=pend.length}}
+function queueWrite(record){const a=loadPending();const key=evalKey(record.pid,record.evaluatorKey||state.evaluatorKey);const i=a.findIndex(x=>x.key===key);const item={key,record};if(i>=0)a[i]=item;else a.push(item);savePending(a)}
+function currentRoleSide(){if(state.role==='admin')return null;return (state.evaluatorKey||'').toLowerCase().startsWith('girls')?'girls':'boys'}
+function sideLabel(){return state.side==='girls'?'Girls':'Boys'}
+function saveRosterToServer(){if(!state.user||state.role!=='admin')return Promise.reject(new Error('Admin required'));return firebase.database().ref('roster').set(ROSTER)}
+async function loadRoster(){
+  const snap=await firebase.database().ref('roster').once('value');
+  const remote=snap.val();
+  if(remote&&Object.keys(remote).length){ROSTER=remote;state.rosterReady=true;return}
+  if(state.role==='admin'){await saveRosterToServer();state.rosterReady=true;return}
+  throw new Error('Roster is not available yet. Ask the administrator to publish it.');
 }
-function slug(s){
-  return (s||'').toString().toLowerCase().replace(/[^a-z0-9]+/g,'');
-}
-function timeAgo(iso){
+async function connectFirebase(){
   try{
-    const diffMs = Date.now() - new Date(iso).getTime();
-    const mins = Math.round(diffMs/60000);
-    if(mins < 1) return 'just now';
-    if(mins < 60) return mins + 'm ago';
-    const hrs = Math.round(mins/60);
-    if(hrs < 24) return hrs + 'h ago';
-    return Math.round(hrs/24) + 'd ago';
-  }catch(e){ return ''; }
-}
-
-function showToast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 1800);
-}
-
-const LOCAL_KEY = 'lakers_eval_data_v1';
-let localStorageOK = true;
-
-function persistToLocal(){
-  if(!localStorageOK) return;
-  try{
-    localStorage.setItem(LOCAL_KEY, JSON.stringify({
-      evaluator: state.evaluator,
-      side: state.side,
-      evalCache: state.evalCache
-    }));
-  }catch(e){
-    localStorageOK = false;
-  }
-}
-
-function loadFromLocal(){
-  try{
-    const raw = localStorage.getItem(LOCAL_KEY);
-    if(!raw) return;
-    const data = JSON.parse(raw);
-    if(data && data.evalCache) state.evalCache = data.evalCache;
-    if(data && data.evaluator) state.evaluator = data.evaluator;
-    if(data && data.side) state.side = data.side;
-  }catch(e){
-    localStorageOK = false;
-  }
-}
-
-function clearLocalData(){
-  try{ localStorage.removeItem(LOCAL_KEY); }catch(e){}
-  state.evalCache = {};
-}
-
-function saveEval(record){
-  state.evalCache[record.pid] = record;
-  persistToLocal();
-  return true;
-}
-
-function newFormData(group, player){
-  const existing = state.evalCache[playerId(group, player)];
-  if(existing) return JSON.parse(JSON.stringify(existing));
-  const scores = {};
-  CATEGORIES.forEach(c=>scores[c.key]=null);
-  return {
-    group, pid: playerId(group, player), num: player.num,
-    lastEditedBy: null, scores, updatedAt: null
-  };
-}
-
-/* ---------- Scoring helpers ---------- */
-function filledCount(fd){
-  if(!fd) return 0;
-  return CATEGORIES.filter(c=>fd.scores[c.key]!=null).length;
-}
-function totalScore(fd){
-  if(!fd) return 0;
-  return CATEGORIES.reduce((sum,c)=> sum + (fd.scores[c.key]||0), 0);
-}
-function averageScore(fd){
-  const n = filledCount(fd);
-  return n > 0 ? totalScore(fd) / n : null;
-}
-function recommendationLabel(fd){
-  const n = filledCount(fd);
-  if(n < CATEGORIES.length) return null;
-  const avg = totalScore(fd) / CATEGORIES.length;
-  if(avg >= 4.50) return 'Elite Team';
-  if(avg >= 4.00) return 'Competitive Team';
-  if(avg >= 3.25) return 'Balanced Team';
-  if(avg >= 2.50) return 'Development Team';
-  return 'Needs More Development';
-}
-function summaryBucket(fd){
-  if(!fd) return 'unrated';
-  const n = filledCount(fd);
-  if(n === 0) return 'unrated';
-  if(n < CATEGORIES.length) return 'inprogress';
-  const rec = recommendationLabel(fd);
-  const map = {
-    'Elite Team':'elite','Competitive Team':'competitive','Balanced Team':'balanced',
-    'Development Team':'development','Needs More Development':'needsdev'
-  };
-  return map[rec] || 'unrated';
-}
-function rosterSubLabel(fd){
-  if(!fd) return 'No rating';
-  const n = filledCount(fd);
-  if(n === 0) return 'No rating';
-  if(n < CATEGORIES.length) return n + ' of 5 scored';
-  const avg = (totalScore(fd) / CATEGORIES.length).toFixed(2);
-  return recommendationLabel(fd) + ' · Avg ' + avg;
-}
-function gradeLabel(group){
-  const m = group.match(/\d+/);
-  return m ? m[0] + ' Grade' : '';
-}
-
-/* ---------- Render router ---------- */
-function render(){
-  const app = document.getElementById('app');
-  let html = '';
-  if(state.screen === 'name') html = renderName();
-  else if(state.screen === 'groups') html = renderGroups();
-  else if(state.screen === 'roster') html = renderRoster();
-  else if(state.screen === 'form') html = renderForm();
-  else if(state.screen === 'export') html = renderExport();
-  else if(state.screen === 'summaryGroups') html = renderSummaryGroups();
-  else if(state.screen === 'summary') html = renderSummary();
-  if(state.showExportPrompt){
-    html += renderExportPrompt();
-  }
-  app.innerHTML = html;
-  attachHandlers();
-}
-
-function renderExportPrompt(){
-  return `
-    <div class="modal-backdrop" id="export-prompt-backdrop">
-      <div class="modal-sheet">
-        <div class="modal-title">Save your progress?</div>
-        <div class="modal-body">You scored players in <strong>${escapeHtml(state.group||'')}</strong>. Download a CSV backup now — this data only lives on this device.</div>
-        <button class="btn btn-primary" id="modal-download">Download CSV</button>
-        <div class="spacer-16"></div>
-        <button class="btn btn-ghost" id="modal-dismiss">Not now</button>
-      </div>
-    </div>
-  `;
-}
-
-function groupHasSavedData(group){
-  if(!group || !ROSTER[group]) return false;
-  return ROSTER[group].players.some(p=>{
-    const rec = state.evalCache[playerId(group, p)];
-    return !!(rec && rec.updatedAt);
-  });
-}
-
-function leaveRoster(targetScreen){
-  if(groupHasSavedData(state.group)){
-    state.pendingScreen = targetScreen;
-    state.showExportPrompt = true;
-    render();
-  } else {
-    state.screen = targetScreen;
-    render();
-  }
-}
-
-/* ---------- Screens ---------- */
-
-function renderName(){
-  const girlsOptions = GIRLS_EVALUATORS.map(n=>`<option value="${n}" ${state.evaluator===n?'selected':''}>${n}</option>`).join('');
-  const boysOptions = BOYS_EVALUATORS.map(n=>`<option value="${n}" ${state.evaluator===n?'selected':''}>${n}</option>`).join('');
-  const girlsSelected = state.side === 'girls' && state.evaluator;
-  const boysSelected = state.side === 'boys' && state.evaluator;
-  return `
-    <div class="topbar">
-      <div class="topbar-row">
-        <div class="brand">LAKERS EVAL APP<small>2026–27 Season</small></div>
-      </div>
-    </div>
-    <div class="content">
-      <div class="hero">
-        <div class="ball">🏀</div>
-        <h1>Let's get scoring</h1>
-        <p>Pick your evaluator name. Girls evaluators only see girls groups &amp; summary; boys evaluators only see boys. Your scores save automatically on this device and are still here if you close and reopen the app.</p>
-      </div>
-
-      <label class="field-label" for="girls-select">Girls Evaluator</label>
-      <select id="girls-select">
-        <option value="">Select…</option>
-        ${girlsOptions}
-      </select>
-      <div class="spacer-16"></div>
-      <button class="btn btn-primary" id="continue-girls" ${girlsSelected?'':'disabled'}>Continue — Girls</button>
-
-      <div class="spacer-24"></div>
-      <div class="section-label" style="margin:0 0 4px;">or</div>
-
-      <label class="field-label" for="boys-select">Boys Evaluator</label>
-      <select id="boys-select">
-        <option value="">Select…</option>
-        ${boysOptions}
-      </select>
-      <div class="spacer-16"></div>
-      <button class="btn btn-primary" id="continue-boys" ${boysSelected?'':'disabled'}>Continue — Boys</button>
-    </div>
-  `;
-}
-
-function renderGroups(){
-  const isGirls = state.side === 'girls';
-  const groups = GROUP_ORDER.filter(g=> isGirls ? g.startsWith('Girls') : g.startsWith('Boys'));
-  const card = (g) => {
-    const total = ROSTER[g].players.length;
-    return `<button class="group-card" data-group="${g}">
-      <div class="g-name">${g}</div>
-      <div class="g-progress">${total} players</div>
-    </button>`;
-  };
-  return `
-    <div class="topbar">
-      <div class="topbar-row">
-        <div class="brand">LAKERS EVAL APP<small>2026–27 Season</small></div>
-        <div class="evaluator-pill" id="change-evaluator"><span class="dot"></span>${escapeHtml(state.evaluator)}</div>
-      </div>
-      <div class="page-title">Pick a group</div>
-      <div class="page-sub">${isGirls?'Girls':'Boys'} groups only</div>
-    </div>
-    <div class="content">
-      <div class="group-grid">${groups.map(card).join('')}</div>
-      <div class="spacer-24"></div>
-      <button class="btn btn-secondary" id="go-summary">View Team Summary</button>
-      <div class="spacer-16"></div>
-      <button class="btn btn-ghost" id="go-export">Export all data (CSV)</button>
-    </div>
-  `;
-}
-
-function renderRoster(){
-  const group = state.group;
-  let players = ROSTER[group].players;
-  if(state.search.trim()){
-    const q = state.search.trim();
-    players = players.filter(p => String(p.num).includes(q));
-  }
-  const done = ROSTER[group].players.filter(p => {
-    const rec = state.evalCache[playerId(group, p)];
-    return !!(rec && rec.updatedAt);
-  }).length;
-  const total = ROSTER[group].players.length;
-
-  const rows = players.map(p=>{
-      const rec = state.evalCache[playerId(group, p)];
-      const hasFeedback = !!(rec && rec.updatedAt);
-      const sub = rosterSubLabel(rec);
-      return `<div class="roster-item" data-pid="${playerId(group, p)}">
-        <div class="jersey">${p.num}</div>
-        <div class="roster-name">
-          <div class="rn-main">Player ${p.num}</div>
-          <div class="rn-sub ${sub==='No rating'?'no-rating':''}">${escapeHtml(sub)}</div>
-        </div>
-        <div class="roster-status">
-          <div class="status-bubble ${hasFeedback?'has-feedback':''}">${icon('check')}</div>
-        </div>
-      </div>`;
-    }).join('');
-
-  return `
-    <div class="topbar">
-      <div class="topbar-row">
-        <button class="back-btn" id="back-to-groups">${icon('back')} Groups</button>
-        <div class="evaluator-pill" id="change-evaluator"><span class="dot"></span>${escapeHtml(state.evaluator)}</div>
-      </div>
-      <div class="page-title">${group}</div>
-      <div class="page-sub">${done} of ${total} saved</div>
-    </div>
-    <div class="content">
-      <div class="search-box">
-        ${icon('search')}
-        <input type="text" id="roster-search" inputmode="numeric" placeholder="Search jersey number" value="${escapeHtml(state.search)}">
-      </div>
-      ${rows || `<div class="empty-state">${icon('empty')}<div>No players match your search.</div></div>`}
-    </div>
-  `;
-}
-
-function renderForm(){
-  const group = state.group;
-  const p = state.player;
-  const fd = state.formData;
-
-  const n = filledCount(fd);
-  const total = totalScore(fd);
-  const avg = averageScore(fd);
-  const rec = recommendationLabel(fd);
-  const scoreSummary = `
-    <div class="score-summary">
-      <div class="score-box">
-        <div class="sb-label">Total</div>
-        <div class="sb-value">${total} <span style="font-size:12px;color:var(--sub);">/ 25</span></div>
-      </div>
-      <div class="score-box">
-        <div class="sb-label">Average</div>
-        <div class="sb-value">${avg!=null ? avg.toFixed(2) : '—'}</div>
-      </div>
-      <div class="score-box sb-rec">
-        <div class="sb-label">Recommendation</div>
-        <div class="sb-value">${rec ? rec : (n+' of 5 scored')}</div>
-      </div>
-    </div>
-  `;
-
-  const body = CATEGORIES.map(c=>`
-    <div class="skill-block">
-      <span class="sk-label">${c.label}</span>
-      <div class="rate-row" data-field="score" data-key="${c.key}">
-        ${[1,2,3,4,5].map(v=>`<button class="rate-btn ${fd.scores[c.key]===v?'sel':''}" data-val="${v}">${v}</button>`).join('')}
-      </div>
-    </div>
-  `).join('');
-
-  return `
-    <div class="topbar">
-      <div class="topbar-row">
-        <button class="back-btn" id="back-to-roster">${icon('back')} ${group}</button>
-      </div>
-    </div>
-    <div class="content" style="padding-bottom:96px;">
-      <div class="player-header">
-        <div class="jersey">${p.num}</div>
-        <div>
-          <div class="ph-name">Player ${p.num}</div>
-          <div class="ph-sub">${gradeLabel(group)} · ${group.startsWith('Boys')?'Boys':'Girls'}</div>
-        </div>
-      </div>
-      ${fd.lastEditedBy ? `<div class="last-edited">Last edited by <strong>${escapeHtml(fd.lastEditedBy)}</strong>${fd.updatedAt ? ' · ' + timeAgo(fd.updatedAt) : ''}</div>` : ''}
-      ${scoreSummary}
-      ${body}
-    </div>
-    <div class="save-bar">
-      <button class="btn btn-primary" id="save-eval">Done</button>
-      <div class="save-note">Saved on this device — still here if you close and reopen (${escapeHtml(state.evaluator)})</div>
-    </div>
-  `;
-}
-
-function renderExport(){
-  return `
-    <div class="topbar">
-      <div class="topbar-row">
-        <button class="back-btn" id="back-to-groups-from-export">${icon('back')} Groups</button>
-      </div>
-      <div class="page-title">Export your data</div>
-      <div class="page-sub">Downloads everything saved on this device</div>
-    </div>
-    <div class="content">
-      <p style="font-size:13.5px;color:var(--sub);line-height:1.6;">
-        Ratings save automatically on this device — they'll still be here if you close and reopen the app,
-        but they aren't synced with other evaluators' devices.
-        Downloading will also open an email draft to Ben — just attach the file before sending.
-      </p>
-      <div class="spacer-16"></div>
-      <button class="btn btn-primary" id="do-export">Download my CSV</button>
-      <div class="spacer-16"></div>
-      <button class="btn btn-ghost" id="clear-data">Clear all data on this device</button>
-      <div id="export-status" style="margin-top:14px;font-size:13px;color:var(--sub);text-align:center;"></div>
-    </div>
-  `;
-}
-
-function renderSummaryGroups(){
-  const isGirls = state.side === 'girls';
-  const groups = GROUP_ORDER.filter(g=> isGirls ? g.startsWith('Girls') : g.startsWith('Boys'));
-  const card = (g) => {
-    const total = ROSTER[g].players.length;
-    return `<button class="group-card" data-summary-group="${g}">
-      <div class="g-name">${g}</div>
-      <div class="g-progress">${total} players</div>
-    </button>`;
-  };
-  return `
-    <div class="topbar">
-      <div class="topbar-row">
-        <button class="back-btn" id="back-to-groups-from-summary">${icon('back')} Groups</button>
-      </div>
-      <div class="page-title">Team Summary</div>
-      <div class="page-sub">${isGirls?'Girls':'Boys'} groups only</div>
-    </div>
-    <div class="content">
-      <div class="group-grid">${groups.map(card).join('')}</div>
-    </div>
-  `;
-}
-
-function renderSummary(){
-  const group = state.group;
-  const players = ROSTER[group].players;
-  const buckets = {elite:[], competitive:[], balanced:[], development:[], needsdev:[], inprogress:[], unrated:[]};
-  players.forEach(p=>{
-    const rec = state.evalCache[playerId(group, p)];
-    const bucket = summaryBucket(rec);
-    buckets[bucket].push({p, rec});
-  });
-
-  const section = (key, title, cssClass) => {
-    const list = buckets[key];
-    if(list.length === 0) return '';
-    const rows = list.map(({p, rec})=>`
-      <div class="summary-row">
-        <div class="jersey">${p.num}</div>
-        <div class="summary-info">
-          <div class="sr-name">Player ${p.num}</div>
-          <div class="sr-sub">${rec ? 'Total ' + totalScore(rec) + '/25' : 'Not yet scored'}</div>
-        </div>
-        <div class="sr-rating">${averageScore(rec)!=null ? averageScore(rec).toFixed(2) : '—'}</div>
-      </div>
-    `).join('');
-    return `
-      <div class="summary-section">
-        <div class="summary-title ${cssClass}">${title} <span class="summary-count">${list.length}</span></div>
-        ${rows}
-      </div>
-    `;
-  };
-
-  const bodyHtml = [
-    section('elite','Elite Team','st-elite'),
-    section('competitive','Competitive Team','st-competitive'),
-    section('balanced','Balanced Team','st-balanced'),
-    section('development','Development Team','st-development'),
-    section('needsdev','Needs More Development','st-needsdev'),
-    section('inprogress','In Progress','st-inprogress'),
-    section('unrated','Not Yet Rated','st-unrated')
-  ].join('');
-
-  return `
-    <div class="topbar">
-      <div class="topbar-row">
-        <button class="back-btn" id="back-to-summary-groups">${icon('back')} Groups</button>
-      </div>
-      <div class="page-title">${group} Summary</div>
-      <div class="page-sub">Recommended placement based on average score</div>
-    </div>
-    <div class="content">
-      ${bodyHtml}
-    </div>
-  `;
-}
-
-/* ---------- Handlers ---------- */
-
-function attachHandlers(){
-  const $ = (id) => document.getElementById(id);
-
-  if(state.showExportPrompt){
-    $('modal-download').addEventListener('click', ()=>{
-      runExportSilent();
-      state.showExportPrompt = false;
-      const target = state.pendingScreen || 'groups';
-      state.pendingScreen = null;
-      state.screen = target;
-      render();
-      showToast('CSV downloaded ✓');
+    if(!firebase.apps.length)firebase.initializeApp(state.firebaseConfig);
+    const auth=firebase.auth();
+    auth.onAuthStateChanged(async user=>{
+      state.user=user;state.authReady=true;
+      if(!user){state.role=null;state.evaluator='';state.evaluatorKey='';state.screen='login';state.dbReady=false;state.dbStatus='Signed out';render();return}
+      try{
+        const us=await firebase.database().ref(`users/${user.uid}`).once('value');const profile=us.val();
+        if(!profile?.role){await auth.signOut();showToast('This account is not assigned to the Lakers app.');return}
+        state.role=profile.role;state.evaluatorKey=profile.evaluatorKey||'admin';if(state.role==='admin'){state.evaluator='Admin'}else{const pending=(window.lakersPendingDisplayName||'').trim();let saved='';try{saved=localStorage.getItem('lakers_eval_display_name_v1_'+user.uid)||''}catch(e){}state.evaluator=pending||saved||profile.displayName||user.email||state.evaluatorKey;if(pending){try{localStorage.setItem('lakers_eval_display_name_v1_'+user.uid,pending)}catch(e){}}window.lakersPendingDisplayName=''}state.side=currentRoleSide();
+        await loadRoster();
+        const ref=firebase.database().ref('evaluations');
+        ref.on('value',snap=>{
+          const server=snap.val()||{},local=loadLocalBackup(),merged={...server};
+          Object.entries(local).forEach(([pid,byEval])=>{merged[pid]??={};Object.entries(byEval||{}).forEach(([ev,rec])=>{const old=merged[pid][ev];if(!old||new Date(rec.updatedAt||0)>=new Date(old.updatedAt||0))merged[pid][ev]=rec})});
+          state.masterEvals=merged;persistLocal();state.dbReady=true;state.dbStatus='Connected · live sync · local recovery active';render();flushPending();
+        },()=>{state.dbReady=false;state.dbStatus='Offline · local recovery active';render()});
+        state.dbReady=true;state.dbStatus='Connected · live sync · local recovery active';state.screen=state.role==='admin'?'admin':'groups';render();await flushPending();
+      }catch(e){state.dbReady=false;state.dbStatus=e.message||'Database unavailable';render()}
     });
-    $('modal-dismiss').addEventListener('click', ()=>{
-      state.showExportPrompt = false;
-      const target = state.pendingScreen || 'groups';
-      state.pendingScreen = null;
-      state.screen = target;
-      render();
-    });
-  }
-
-  if(state.screen === 'name'){
-    const girlsSelect = $('girls-select');
-    const boysSelect = $('boys-select');
-    girlsSelect.addEventListener('change', e=>{
-      $('continue-girls').disabled = !e.target.value;
-      if(e.target.value){ boysSelect.value = ''; $('continue-boys').disabled = true; }
-    });
-    boysSelect.addEventListener('change', e=>{
-      $('continue-boys').disabled = !e.target.value;
-      if(e.target.value){ girlsSelect.value = ''; $('continue-girls').disabled = true; }
-    });
-    $('continue-girls').addEventListener('click', ()=>{
-      if(!girlsSelect.value) return;
-      state.evaluator = girlsSelect.value;
-      state.side = 'girls';
-      state.screen = 'groups';
-      persistToLocal();
-      render();
-    });
-    $('continue-boys').addEventListener('click', ()=>{
-      if(!boysSelect.value) return;
-      state.evaluator = boysSelect.value;
-      state.side = 'boys';
-      state.screen = 'groups';
-      persistToLocal();
-      render();
-    });
-  }
-
-  if(state.screen === 'groups'){
-    document.querySelectorAll('.group-card').forEach(el=>{
-      el.addEventListener('click', ()=>{
-        state.group = el.dataset.group;
-        state.search = '';
-        state.screen = 'roster';
-        render();
-      });
-    });
-    $('change-evaluator').addEventListener('click', ()=>{ state.screen='name'; render(); });
-    $('go-summary').addEventListener('click', ()=>{ state.screen='summaryGroups'; render(); });
-    $('go-export').addEventListener('click', ()=>{ state.screen='export'; render(); });
-  }
-
-  if(state.screen === 'roster'){
-    $('back-to-groups').addEventListener('click', ()=>{ leaveRoster('groups'); });
-    $('change-evaluator').addEventListener('click', ()=>{ leaveRoster('name'); });
-    const search = $('roster-search');
-    search.addEventListener('input', e=>{
-      state.search = e.target.value;
-      render();
-      const v = document.getElementById('roster-search');
-      v.focus();
-      v.setSelectionRange(v.value.length, v.value.length);
-    });
-    document.querySelectorAll('.roster-item').forEach(el=>{
-      el.addEventListener('click', ()=>{
-        const pid = el.dataset.pid;
-        const player = ROSTER[state.group].players.find(p=>playerId(state.group, p)===pid);
-        state.player = player;
-        state.formData = newFormData(state.group, player);
-        state.screen = 'form';
-        render();
-      });
-    });
-  }
-
-  if(state.screen === 'form'){
-    $('back-to-roster').addEventListener('click', ()=>{ state.screen='roster'; render(); });
-
-    document.querySelectorAll('[data-field="score"]').forEach(row=>{
-      row.querySelectorAll('.rate-btn').forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          state.formData.scores[row.dataset.key] = parseInt(btn.dataset.val);
-          state.formData.updatedAt = new Date().toISOString();
-          state.formData.lastEditedBy = state.evaluator;
-          saveEval(state.formData);
-          render();
-        });
-      });
-    });
-
-    $('save-eval').addEventListener('click', ()=>{
-      state.screen = 'roster';
-      render();
-    });
-  }
-
-  if(state.screen === 'export'){
-    $('back-to-groups-from-export').addEventListener('click', ()=>{ state.screen='groups'; render(); });
-    $('do-export').addEventListener('click', runExport);
-    $('clear-data').addEventListener('click', ()=>{
-      if(confirm('This permanently deletes every saved evaluation on this device. Download a CSV backup first if you haven\'t. Continue?')){
-        clearLocalData();
-        showToast('All data cleared');
-        render();
-      }
-    });
-  }
-
-  if(state.screen === 'summaryGroups'){
-    $('back-to-groups-from-summary').addEventListener('click', ()=>{ state.screen='groups'; render(); });
-    document.querySelectorAll('[data-summary-group]').forEach(el=>{
-      el.addEventListener('click', ()=>{
-        state.group = el.dataset.summaryGroup;
-        state.screen = 'summary';
-        render();
-      });
-    });
-  }
-
-  if(state.screen === 'summary'){
-    $('back-to-summary-groups').addEventListener('click', ()=>{ state.screen='summaryGroups'; render(); });
-  }
+    return true;
+  }catch(e){state.dbStatus='Firebase connection failed';render();return false}
 }
-
-function downloadCSV(){
-  const headers = ['Group','Grade','Gender','Jersey #','Last Edited By',
-    'Effort','Basketball IQ & Awareness','Basketball Skills','Athletic Movement','Team Play',
-    'Total Score','Average Score','Overall Recommendation','Last Updated'];
-
-  const rows = [];
-  Object.values(state.evalCache).forEach(v=>{
-    const group = v.group;
-    if(!group || !ROSTER[group]) return;
-    const gradeMatch = group.match(/\d+/);
-    const gender = group.startsWith('Boys') ? 'Boys' : 'Girls';
-    const total = totalScore(v);
-    const avg = averageScore(v);
-    const rec = recommendationLabel(v);
-    rows.push([
-      group, gradeMatch?gradeMatch[0]:'', gender, v.num??'', v.lastEditedBy||'',
-      v.scores?.effort??'', v.scores?.iq??'', v.scores?.skills??'', v.scores?.movement??'', v.scores?.teamplay??'',
-      total, avg!=null?avg.toFixed(2):'', rec||'', v.updatedAt||''
-    ]);
-  });
-
-  if(rows.length === 0) return 0;
-
-  const csv = [headers, ...rows].map(r =>
-    r.map(cell => {
-      const s = String(cell ?? '');
-      return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
-    }).join(',')
-  ).join('\n');
-
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'tryout_evaluations_' + slug(state.evaluator || 'evaluator') + '.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-
-  return rows.length;
+async function signIn(email,password){try{if(!firebase.apps.length)firebase.initializeApp(state.firebaseConfig);await firebase.auth().signInWithEmailAndPassword(email,password);return true}catch(e){showToast(e.code==='auth/invalid-credential'?'Incorrect email or password.':e.message||'Sign-in failed.');return false}}
+async function signOut(){try{await firebase.auth().signOut()}catch(e){}}
+async function flushPending(){if(!state.dbReady||!state.user)return;const pending=loadPending();if(!pending.length)return;for(const item of pending){try{await firebase.database().ref(`evaluations/${item.record.pid}/${slug(item.record.evaluatorKey)}`).set(item.record)}catch(e){return}}savePending([]);state.dbStatus='Connected · all pending data synced';render()}
+async function saveEval(record){
+  record.updatedAt=new Date().toISOString();record.deviceId=deviceId;record.schemaVersion=5;record.ownerUid=state.user?.uid||null;
+  state.masterEvals[record.pid]??={};state.masterEvals[record.pid][slug(record.evaluatorKey)]=record;state.dirty=false;persistLocal();
+  try{if(!state.dbReady)throw new Error('offline');await firebase.database().ref(`evaluations/${record.pid}/${slug(record.evaluatorKey)}`).set(record);showToast('Saved locally + synced')}catch(e){queueWrite(record);state.dbStatus='Offline · saved locally · sync queued';showToast('Saved locally · sync queued')}return true;
 }
-
-function openEmailDraft(count){
-  const subject = encodeURIComponent('Tryout Evaluations CSV — ' + (state.evaluator || 'Evaluator'));
-  const body = encodeURIComponent(
-    'Attached: ' + count + ' player evaluation' + (count===1?'':'s') + '.\n\n' +
-    'Please attach the CSV file that was just downloaded to this device before sending — ' +
-    'this app can\'t attach files automatically, only email apps can.'
-  );
-  try{
-    window.location.href = 'mailto:Ben.denker@gmail.com?subject=' + subject + '&body=' + body;
-  }catch(e){}
+function newFormData(group,p){const ex=getMyEval(playerId(p));if(ex)return JSON.parse(JSON.stringify(ex));const base={group,pid:playerId(p),num:p.num,first:p.first,last:p.last,lyteam:p.lyteam,lastEditedBy:state.evaluator,evaluatorKey:state.evaluatorKey,feedback:'',updatedAt:null};if(ROSTER[group].isBoys){base.skills={};BOYS_SKILLS.forEach(s=>base.skills[s]=null);base.gameRating=null}else{base.drills={};GIRLS_DRILLS.forEach(d=>base.drills[d]=null);base.rating=null}return base}
+function autosaveDraft(){if(!state.formData)return;try{const d={evaluator:state.evaluator,group:state.group,player:state.player,formData:state.formData,savedAt:new Date().toISOString()};localStorage.setItem('lakers_eval_draft_v5',JSON.stringify(d));idbSet('draft',d)}catch(e){}}
+function clearDraft(){localStorage.removeItem('lakers_eval_draft_v5');idbSet('draft',null)}
+function recoverDraft(){try{const d=JSON.parse(localStorage.getItem('lakers_eval_draft_v5')||'null');if(d&&d.evaluator&&d.formData&&!d.formData.updatedAt)return d}catch(e){}return null}
+function timeAgo(iso){try{const m=Math.round((Date.now()-new Date(iso).getTime())/60000);if(m<1)return'just now';if(m<60)return m+'m ago';const h=Math.round(m/60);if(h<24)return h+'h ago';return Math.round(h/24)+'d ago'}catch(e){return''}}
+function initials(p){return(p.first?.[0]||'')+(p.last?.[0]||'')}
+function ratingLabel(group,rec){if(!rec)return'No rating';if(ROSTER[group].isBoys)return rec.gameRating||'No rating';if(rec.rating==null)return'No rating';return GIRLS_RATINGS.find(r=>r.v===rec.rating)?.l||'No rating'}
+function tierForRecord(group,rec){if(ROSTER[group].isBoys){const g=rec?.gameRating;if(!g)return'unrated';if(['A','A-','B+'].includes(g))return'gold';if(['B','B-','C+'].includes(g))return'blue';if(['C-','C'].includes(g))return'white';if(g==='REC')return'waitlist';return'unrated'}const r=rec?.rating;if(r==null)return'unrated';if(r===5)return'gold';if(r===4||r===3)return'blue';if(r===2)return'white';if(r===1)return'waitlist';return'unrated'}
+function average(nums){const a=nums.filter(n=>typeof n==='number'&&!Number.isNaN(n));return a.length?a.reduce((x,y)=>x+y,0)/a.length:null}
+const GRADE_SCORE={A:9,'A-':8,'B+':7,B:6,'B-':5,'C+':4,C:3,'C-':2,REC:1};
+function gradeFromAverage(avg){if(avg==null)return null;let best=null,dist=Infinity;Object.entries(GRADE_SCORE).forEach(([g,v])=>{const d=Math.abs(v-avg);if(d<dist){dist=d;best=g}});return best}
+function consensusRecord(group,p){const recs=getPlayerEvals(playerId(p));if(!recs.length)return null;const out={group,pid:playerId(p),num:p.num,first:p.first,last:p.last,lyteam:p.lyteam,evalCount:recs.length,evaluators:recs.map(r=>r.lastEditedBy).filter(Boolean)};if(ROSTER[group].isBoys){out.skills={};BOYS_SKILLS.forEach(s=>out.skills[s]=average(recs.map(r=>Number(r.skills?.[s])).filter(Number.isFinite)));const nums=recs.map(r=>GRADE_SCORE[r.gameRating]).filter(Number.isFinite);out.gameRatingAvg=average(nums);out.gameRating=gradeFromAverage(out.gameRatingAvg)}else{out.drills={};GIRLS_DRILLS.forEach(d=>out.drills[d]=average(recs.map(r=>Number(r.drills?.[d])).filter(Number.isFinite)));out.ratingAvg=average(recs.map(r=>Number(r.rating)).filter(Number.isFinite));out.rating=out.ratingAvg==null?null:Math.max(1,Math.min(5,Math.round(out.ratingAvg)))}out.feedback=recs.map(r=>r.feedback?`${r.lastEditedBy}: ${r.feedback}`:'').filter(Boolean).join(' | ');out.lastUpdated=recs.map(r=>r.updatedAt).sort().pop()||null;return out}
+function playerId(p){return (p.num??'x')+'_'+slug(p.first)+'_'+slug(p.last)}
+function slug(s){return (s||'').toString().toLowerCase().replace(/[^a-z0-9]+/g,'')}
+function initials(p){return (p.first?.[0]||'')+(p.last?.[0]||'')}
+function ratingLabel(group,rec){if(!rec)return'No rating';if(ROSTER[group].isBoys)return rec.gameRating||'No rating';if(rec.rating==null)return'No rating';return GIRLS_RATINGS.find(r=>r.v===rec.rating)?.l||'No rating'}
+function tierForRecord(group,rec){if(ROSTER[group].isBoys){const g=rec?.gameRating;if(!g)return'unrated';if(['A','A-','B+'].includes(g))return'gold';if(['B','B-','C+'].includes(g))return'blue';if(['C-','C'].includes(g))return'white';if(g==='REC')return'waitlist';return'unrated'}const r=rec?.rating;if(r==null)return'unrated';if(r===5)return'gold';if(r===4||r===3)return'blue';if(r===2)return'white';if(r===1)return'waitlist';return'unrated'}
+function timeAgo(iso){try{const m=Math.round((Date.now()-new Date(iso).getTime())/60000);if(m<1)return'just now';if(m<60)return m+'m ago';const h=Math.round(m/60);if(h<24)return h+'h ago';return Math.round(h/24)+'d ago'}catch(e){return''}}
+function showToast(msg){const t=document.getElementById('toast');if(t){t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}}
+async function saveEval(record){
+  record.updatedAt=record.updatedAt||new Date().toISOString();record.deviceId=deviceId;record.schemaVersion=5;
+  state.masterEvals[record.pid]??={};state.masterEvals[record.pid][slug(record.evaluatorKey)]=record;state.dirty=false;persistLocal();
+  if(state.dbReady){try{await firebase.database().ref(`evaluations/${record.pid}/${slug(record.evaluatorKey)}`).set(record);showToast('Saved locally + synced');return true}catch(e){queueWrite(record);showToast('Saved locally · sync queued');return true}}
+  queueWrite(record);showToast('Saved securely on this device');return true;
 }
-
-function runExport(){
-  const statusEl = document.getElementById('export-status');
-  const count = downloadCSV();
-  if(count === 0){
-    statusEl.textContent = 'No saved evaluations yet on this device.';
-    return;
-  }
-  statusEl.textContent = `Done — exported ${count} evaluation${count===1?'':'s'}. Opening email to Ben…`;
-  setTimeout(()=>openEmailDraft(count), 400);
-}
-
-function runExportSilent(){
-  const count = downloadCSV();
-  if(count > 0){
-    setTimeout(()=>openEmailDraft(count), 400);
-  }
-  return count;
-}
-
+function newFormData(group,p){const ex=getMyEval(playerId(p));if(ex)return JSON.parse(JSON.stringify(ex));const base={group,pid:playerId(p),num:p.num,first:p.first,last:p.last,lyteam:p.lyteam,lastEditedBy:state.evaluator,evaluatorKey:state.evaluatorKey,feedback:'',updatedAt:null};if(ROSTER[group].isBoys){base.skills={};BOYS_SKILLS.forEach(s=>base.skills[s]=null);base.gameRating=null}else{base.drills={};GIRLS_DRILLS.forEach(d=>base.drills[d]=null);base.rating=null}return base}
+function autosaveDraft(){if(!state.formData)return;try{localStorage.setItem('lakers_eval_draft_v3',JSON.stringify({evaluator:state.evaluator,group:state.group,player:state.player,formData:state.formData,savedAt:new Date().toISOString()}))}catch(e){}}
+function clearDraft(){localStorage.removeItem('lakers_eval_draft_v3')}
+function recoverDraft(){try{const d=JSON.parse(localStorage.getItem('lakers_eval_draft_v3')||'null');if(d&&d.evaluator&&d.formData&&!d.formData.updatedAt)return d}catch(e){}return null}
 function icon(name){
   const icons = {
     back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
@@ -1169,24 +536,91 @@ function icon(name){
   return icons[name]||'';
 }
 
-function escapeHtml(s){
-  return (s||'').toString().replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function groupProgress(group){
+  const roster=ROSTER[group].players;
+  const done=roster.filter(p=>!!getMyEval(playerId(p))?.updatedAt).length;
+  const consensus=roster.filter(p=>countPlayerEvals(playerId(p))>0).length;
+  return {done,total:roster.length,consensus};
 }
 
-loadFromLocal();
-if(state.evaluator && state.side) state.screen = 'groups';
-render();
+function escapeHtml(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;')}
+function render(){
+ const app=document.getElementById('app');let html='';
+ if(state.screen==='login')html=renderLogin();
+ else if(state.screen==='admin')html=renderAdmin();
+ else if(state.screen==='setup')html=renderSetup();
+ else if(state.screen==='groups')html=renderGroups();
+ else if(state.screen==='roster')html=renderRoster();
+ else if(state.screen==='form')html=renderForm();
+ else if(state.screen==='export')html=renderExport();
+ else if(state.screen==='summaryGroups')html=renderSummaryGroups();
+ else if(state.screen==='summary')html=renderSummary();
+ app.innerHTML=html;attachHandlers();
+}
+function renderLogin(){
+ return `<div class="topbar"><div class="topbar-row"><div class="brand">LAKERS EVAL APP<small>2026–27 Season</small></div></div><div class="page-title">Secure evaluator sign-in</div><div class="page-sub">Firebase authentication · private tryout data</div></div>
+ <div class="content"><div class="hero"><div class="ball">🏀</div><h1>Let's get scoring</h1><p>Sign in with the email and password assigned to you. You can enter the name you want shown on evaluations, or leave it blank to use your sign-in email.</p></div>
+ <label class="field-label">Email</label><input id="login-email" type="email" autocomplete="username" placeholder="you@example.com">
+ <div class="spacer-16"></div><label class="field-label">Password</label><input id="login-password" type="password" autocomplete="current-password" placeholder="Password">
+ <div class="spacer-16"></div><label class="field-label">Name shown on evaluations <span style="font-weight:400;color:var(--sub)">(optional)</span></label><input id="login-display-name" type="text" autocomplete="name" placeholder="Leave blank to use sign-in email">
+ <div class="spacer-16"></div><button class="btn btn-primary" id="login-btn">Sign in</button>
+ <div class="spacer-16"></div><div id="login-status" style="font-size:12px;color:var(--sub);text-align:center;">${escapeHtml(state.dbStatus)}</div></div>`;
+}
 
-// Best-effort: attempt a CSV download when the page is closing.
-// Not guaranteed by every browser (especially mobile Safari) — the
-// localStorage save on every tap is the real safety net; this is a bonus.
-let lastAutoDownloadCount = 0;
-window.addEventListener('pagehide', ()=>{
-  const count = Object.keys(state.evalCache).length;
-  if(count > 0 && count !== lastAutoDownloadCount){
-    try{ downloadCSV(); lastAutoDownloadCount = count; }catch(e){}
-  }
-});
+function renderSetup(){return `<div class="topbar"><div class="topbar-row"><button class="back-btn" id="back-from-setup">${icon('back')} Back</button></div><div class="page-title">Firebase status</div><div class="page-sub">Authenticated connection</div></div><div class="content"><p style="font-size:13.5px;color:var(--sub);line-height:1.6;">This app is configured for the Lakers Firebase project. Authentication is required; no anonymous access is used.</p><div style="padding:14px;border:1px solid var(--line);border-radius:12px;background:#f8fbfd;"><b>${escapeHtml(state.user?.email||'Not signed in')}</b><div style="font-size:12px;color:var(--sub);margin-top:5px;">Role: ${escapeHtml(state.role||'—')} · Status: ${escapeHtml(state.dbStatus)}</div></div><div class="spacer-16"></div><button class="btn btn-secondary" id="signout-btn">Sign out</button></div>`}
+function renderAdmin(){
+ return `<div class="topbar"><div class="topbar-row"><div class="brand">LAKERS EVAL APP<small>2026–27 Season</small></div><div class="evaluator-pill"><span class="dot"></span>Admin</div></div><div class="page-title">Admin Mode</div><div class="page-sub">Roster, accounts, backup and live status</div></div>
+ <div class="content"><div style="padding:14px;border:1px solid var(--line);border-radius:12px;background:#f8fbfd;"><b>Signed in:</b> ${escapeHtml(state.user?.email||'')}<div style="font-size:12px;color:var(--sub);margin-top:5px;">${escapeHtml(state.dbStatus)}</div></div>
+ <div class="spacer-16"></div><button class="btn btn-primary" id="admin-roster">Open evaluation groups</button>
+ <div class="spacer-12"></div><button class="btn btn-secondary" id="publish-roster">Publish current roster to Firebase</button>
+ <div class="spacer-12"></div><button class="btn btn-secondary" id="admin-export">Export all evaluations</button>
+ <div class="spacer-24"></div><div class="section-label">Add evaluator mapping</div>
+ <p style="font-size:12px;color:var(--sub);line-height:1.5;">Create the evaluator's Email/Password account in Firebase Authentication first. Then paste that account's UID here and assign one key: Girls 1–8 or Boys 1–8. The reviewer can choose a display name at sign-in or leave it blank to use the sign-in email.</p>
+ <label class="field-label">Firebase User UID</label><input id="new-uid" placeholder="Paste evaluator UID">
+ <div class="spacer-12"></div><label class="field-label">Evaluator key</label><select id="new-evaluator"><option value="">Select…</option>${[...GIRLS_EVALUATORS,...BOYS_EVALUATORS].map(x=>`<option>${x}</option>`).join('')}</select>
+ <div class="spacer-12"></div><button class="btn btn-secondary" id="save-evaluator">Save evaluator mapping</button>
+ <div class="spacer-24"></div><button class="btn btn-ghost" id="firebase-status">Firebase connection details</button><div class="spacer-12"></div><button class="btn btn-ghost" id="signout-btn">Sign out</button></div>`;
+}
+function renderGroups(){
+ const groups=GROUP_ORDER.filter(g=>state.role==='admin'||(state.side==='girls'?g.startsWith('Girls'):g.startsWith('Boys')));
+ return `<div class="topbar"><div class="topbar-row"><div class="brand">LAKERS EVAL APP<small>2026–27 Season</small></div><div class="evaluator-pill" id="change-evaluator"><span class="dot"></span>${escapeHtml(state.evaluator)}</div></div><div class="page-title">Pick a group</div><div class="page-sub">${state.role==='admin'?'All groups':sideLabel()+' groups only'}</div></div><div class="content"><div class="group-grid">${groups.map(g=>`<button class="group-card" data-group="${g}"><div class="g-name">${g}</div><div class="g-progress">${ROSTER[g].players.length} players · ${groupProgress(g).done} mine · ${groupProgress(g).consensus} shared</div></button>`).join('')}</div><div class="spacer-24"></div><button class="btn btn-secondary" id="go-summary">View Team Summary</button><div class="spacer-16"></div><button class="btn btn-ghost" id="go-export">Export all data (CSV)</button>${state.role==='admin'?'<div class="spacer-16"></div><button class="btn btn-ghost" id="back-admin">Back to Admin Mode</button>':''}</div>`;
+}
+function attachHandlers(){
+ const $=id=>document.getElementById(id);
+ $('login-btn')?.addEventListener('click',async()=>{const email=$('login-email').value.trim(),pw=$('login-password').value,displayName=$('login-display-name')?.value.trim()||'';if(!email||!pw){showToast('Enter email and password');return}window.lakersPendingDisplayName=displayName;$('login-btn').disabled=true;$('login-status').textContent='Signing in…';await signIn(email,pw)});
+ $('login-password')?.addEventListener('keydown',e=>{if(e.key==='Enter')$('login-btn')?.click()});
+ $('signout-btn')?.addEventListener('click',signOut);
+ $('firebase-status')?.addEventListener('click',()=>{state.screen='setup';render()});
+ $('back-from-setup')?.addEventListener('click',()=>{state.screen=state.role==='admin'?'admin':'groups';render()});
+ $('admin-roster')?.addEventListener('click',()=>{state.side=null;state.screen='groups';render()});
+ $('back-admin')?.addEventListener('click',()=>{state.screen='admin';render()});
+ $('publish-roster')?.addEventListener('click',async()=>{try{await saveRosterToServer();showToast('Roster published to Firebase')}catch(e){showToast('Roster publish failed')}})
+ $('admin-export')?.addEventListener('click',()=>{state.screen='export';render()});
+ $('save-evaluator')?.addEventListener('click',async()=>{const uid=$('new-uid')?.value.trim(),key=$('new-evaluator')?.value;if(!uid||!key){showToast('Enter UID and evaluator key');return}try{await firebase.database().ref(`users/${uid}`).set({role:'evaluator',evaluatorKey:key});showToast(`${key} mapping saved`);$('new-uid').value='';$('new-evaluator').value=''}catch(e){showToast('Could not save mapping')}})
+ $('change-evaluator')?.addEventListener('click',()=>{if(state.role==='admin'){state.screen='admin';render()}});
+ $('continue-girls')?.addEventListener('click',()=>{state.side='girls';state.screen='groups';render()});
+ $('continue-boys')?.addEventListener('click',()=>{state.side='boys';state.screen='groups';render()});
+ $('recover-draft')?.addEventListener('click',()=>{const d=recoverDraft();if(d){state.group=d.group;state.player=d.player;state.formData=d.formData;state.side=d.group?.startsWith('Girls')?'girls':'boys';state.screen='form';render()}});
+ document.querySelectorAll('[data-group]').forEach(b=>b.addEventListener('click',()=>{state.group=b.dataset.group;state.screen='roster';state.search='';render()}));
+ document.querySelectorAll('[data-summary-group]').forEach(b=>b.addEventListener('click',()=>{state.group=b.dataset.summaryGroup;state.screen='summary';render()}));
+ document.querySelectorAll('.roster-item').forEach(b=>b.addEventListener('click',()=>{const p=ROSTER[state.group].players.find(x=>playerId(x)===b.dataset.pid);if(!p)return;state.player=p;state.formData=newFormData(state.group,p);state.screen='form';render()}));
+ $('roster-search')?.addEventListener('input',e=>{state.search=e.target.value;render();const el=$('roster-search');if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length)}});
+ $('go-summary')?.addEventListener('click',()=>{state.screen='summaryGroups';render()});$('go-export')?.addEventListener('click',()=>{state.screen='export';render()});
+ $('back-to-groups')?.addEventListener('click',()=>{state.screen='groups';state.search='';render()});$('back-to-groups-from-export')?.addEventListener('click',()=>{state.screen=state.role==='admin'?'admin':'groups';render()});$('back-to-groups-from-summary')?.addEventListener('click',()=>{state.screen='groups';render()});$('back-to-summary-groups')?.addEventListener('click',()=>{state.screen='summaryGroups';render()});
+ $('do-export')?.addEventListener('click',runExport);
+ if(state.screen==='form'){
+  document.querySelectorAll('[data-field="skill"] .rate-btn').forEach(b=>b.addEventListener('click',()=>{state.formData.skills[b.parentElement.dataset.skill]=Number(b.dataset.val);state.dirty=true;autosaveDraft();render()}));
+  document.querySelectorAll('[data-field="drill"] .rate-btn').forEach(b=>b.addEventListener('click',()=>{state.formData.drills[b.parentElement.dataset.drill]=Number(b.dataset.val);state.dirty=true;autosaveDraft();render()}));
+  document.querySelectorAll('[data-field="gameRating"] .grade-btn').forEach(b=>b.addEventListener('click',()=>{state.formData.gameRating=b.dataset.val;state.dirty=true;autosaveDraft();render()}));
+  document.querySelectorAll('[data-field="girlsRating"] .rate-btn').forEach(b=>b.addEventListener('click',()=>{state.formData.rating=Number(b.dataset.val);state.dirty=true;autosaveDraft();render()}));
+  document.querySelector('textarea[data-field="feedback"]')?.addEventListener('input',e=>{state.formData.feedback=e.target.value;state.dirty=true;autosaveDraft()});
+  $('save-eval')?.addEventListener('click',async()=>{const fd=state.formData;const ok=ROSTER[state.group].isBoys?(BOYS_SKILLS.every(s=>fd.skills[s]!=null)&&fd.gameRating):(GIRLS_DRILLS.every(d=>fd.drills[d]!=null)&&fd.rating!=null);if(!ok){showToast('Complete every rating before saving');return}fd.lastEditedBy=state.evaluator;await saveEval(fd);clearDraft();state.screen='roster';render()});
+ }
+}
+window.addEventListener('beforeunload',()=>{persistLocal();autosaveDraft()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){persistLocal();autosaveDraft()}});
+window.addEventListener('online',()=>{if(state.user)connectFirebase()});
+render(); (async()=>{ try{await hydrateLocal(); render();}catch(e){state.dbStatus='Local backup unavailable'; render();} try{await connectFirebase();}catch(e){state.dbStatus='Firebase unavailable'; render();} })();
 </script>
 </body>
 </html>
